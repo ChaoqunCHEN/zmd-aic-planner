@@ -1,0 +1,84 @@
+{
+  "formatVersion": "1",
+  "datasetVersion": "2026-03-15-mvp-seed",
+  "exportedAt": "2026-03-15T00:00:00.000Z",
+  "payload": {
+    "formatVersion": "1",
+    "datasetVersion": "2026-03-15-mvp-seed",
+    "metadata": {
+      "name": "Canonical Chain",
+      "createdAt": "2026-03-15T00:00:00.000Z",
+      "updatedAt": "2026-03-15T00:00:00.000Z"
+    },
+    "siteConfig": {
+      "sitePresetId": "site.training-yard",
+      "externalInputCaps": {
+        "resource.iron-ore": 120
+      }
+    },
+    "nodes": {
+      "node-smelter": {
+        "id": "node-smelter",
+        "catalogId": "machine.basic-smelter",
+        "kind": "machine",
+        "position": {
+          "x": 2,
+          "y": 4
+        },
+        "footprint": {
+          "width": 2,
+          "height": 2
+        },
+        "rotation": 0,
+        "modeId": "mode.basic-smelter.standard",
+        "settings": {}
+      },
+      "node-intake": {
+        "id": "node-intake",
+        "catalogId": "terminal.ore-intake",
+        "kind": "io",
+        "position": {
+          "x": 0,
+          "y": 4
+        },
+        "footprint": {
+          "width": 1,
+          "height": 1
+        },
+        "rotation": 0,
+        "settings": {}
+      },
+      "node-output": {
+        "id": "node-output",
+        "catalogId": "terminal.ingot-output",
+        "kind": "io",
+        "position": {
+          "x": 5,
+          "y": 4
+        },
+        "footprint": {
+          "width": 1,
+          "height": 1
+        },
+        "rotation": 0,
+        "settings": {}
+      }
+    },
+    "edges": {
+      "edge-node-intake-ore-out-node-smelter-ore-in": {
+        "id": "edge-node-intake-ore-out-node-smelter-ore-in",
+        "sourceNodeId": "node-intake",
+        "sourcePortId": "ore-out",
+        "targetNodeId": "node-smelter",
+        "targetPortId": "ore-in"
+      },
+      "edge-node-smelter-ingot-out-node-output-ingot-in": {
+        "id": "edge-node-smelter-ingot-out-node-output-ingot-in",
+        "sourceNodeId": "node-smelter",
+        "sourcePortId": "ingot-out",
+        "targetNodeId": "node-output",
+        "targetPortId": "ingot-in"
+      }
+    }
+  }
+}

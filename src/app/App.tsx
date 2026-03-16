@@ -125,6 +125,10 @@ export function App() {
 
     return facts;
   }, [plannerState.dataset.resources, referenceContext]);
+  const selectedNodeRate =
+    selectedNode && plannerState.analysis
+      ? plannerState.analysis.nodeRates[selectedNode.id] ?? 0
+      : null;
 
   useEffect(() => {
     if (!store.getState().plan) {
@@ -237,6 +241,7 @@ export function App() {
                 <SelectionInspector
                   diagnostics={selectionDiagnostics}
                   modeOptions={modeOptions}
+                  nodeRate={selectedNodeRate}
                   onModeChange={(modeId) => {
                     if (selectedNode) {
                       commands.setNodeMode({

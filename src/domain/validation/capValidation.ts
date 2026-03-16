@@ -18,6 +18,15 @@ export function runCapValidation(
   connectionState: ConnectionState
 ): Diagnostic[] {
   const usageByResource = new Map<string, number>();
+  const isExternalOutputTerminal = (nodeId: string) => {
+    const node = plan.nodes[nodeId];
+    const item = node ? dataset.placeableItems[node.catalogId] : null;
+
+    return (
+      item?.subtype === "terminal" &&
+      item.ports.every((port) => port.flow === "output")
+    );
+  };
 
   for (const node of Object.values(plan.nodes)) {
     const item = dataset.placeableItems[node.catalogId];
@@ -42,16 +51,23 @@ export function runCapValidation(
         continue;
       }
 
+      const ratePerMinute = (input.amount / recipe.durationSeconds) * 60 * modeMultiplier;
       const inboundKey = `${node.id}:${matchingPort.id}`;
       const validInbound = (connectionState.inboundByPort.get(inboundKey) ?? []).filter((edge) =>
         connectionState.validEdgeIds.has(edge.id)
       );
 
       if (validInbound.length > 0) {
+        if (validInbound.some((edge) => isExternalOutputTerminal(edge.sourceNodeId))) {
+          usageByResource.set(
+            input.resourceId,
+            (usageByResource.get(input.resourceId) ?? 0) + ratePerMinute
+          );
+        }
+
         continue;
       }
 
-      const ratePerMinute = (input.amount / recipe.durationSeconds) * 60 * modeMultiplier;
       usageByResource.set(input.resourceId, (usageByResource.get(input.resourceId) ?? 0) + ratePerMinute);
     }
   }

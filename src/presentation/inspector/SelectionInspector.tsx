@@ -17,6 +17,7 @@ type SelectionInspectorProps = {
   selectedNode: PlanNode | null;
   referenceContext: ReferenceContext | null;
   diagnostics: Diagnostic[];
+  nodeRate?: number | null;
   modeOptions?: MachineMode[];
   onModeChange?: (modeId: string) => void;
 };
@@ -25,6 +26,7 @@ export function SelectionInspector({
   selectedNode,
   referenceContext,
   diagnostics,
+  nodeRate,
   modeOptions = [],
   onModeChange
 }: SelectionInspectorProps) {
@@ -46,6 +48,9 @@ export function SelectionInspector({
           </p>
           <p className={styles.meta}>
             Active mode: {referenceContext.mode?.name ?? "Not selected"}
+          </p>
+          <p className={styles.meta}>
+            Current throughput: {(nodeRate ?? 0).toFixed(2)}/min
           </p>
           {modeOptions.length > 0 ? (
             <label className={styles.field}>
