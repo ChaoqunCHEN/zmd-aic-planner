@@ -6,14 +6,34 @@ export const sourceMetaSchema = z.object({
   sourceNotes: z.array(z.string()).optional()
 });
 
+export const sourceRefSchema = z.object({
+  endpoint: z.string().min(1).optional(),
+  path: z.string().min(1).optional(),
+  label: z.string().min(1).optional(),
+  rawValue: z.unknown().optional()
+});
+
+export const assetRefSchema = z.object({
+  kind: z.enum(["icon", "illustration", "sprite", "other"]),
+  path: z.string().min(1).optional(),
+  url: z.string().min(1).optional(),
+  sourceUrl: z.string().min(1).optional(),
+  mimeType: z.string().min(1).optional(),
+  sha256: z.string().min(1).optional(),
+  alt: z.string().min(1).optional()
+});
+
 export const catalogEntitySchema = z.object({
   id: z.string().min(1),
   kind: z.string().min(1),
   name: z.string().min(1),
   nameZhHans: z.string().min(1),
   description: z.string().optional(),
+  icon: assetRefSchema.optional(),
+  illustration: assetRefSchema.optional(),
   tags: z.array(z.string()).optional(),
-  source: sourceMetaSchema
+  source: sourceMetaSchema,
+  sourceRefs: z.array(sourceRefSchema).optional()
 });
 
 export const portDefinitionSchema = z.object({

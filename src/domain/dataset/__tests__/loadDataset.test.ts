@@ -79,4 +79,49 @@ describe("loadDataset", () => {
       "probable"
     );
   });
+
+  it("accepts mirrored asset refs and source refs on catalog entities", () => {
+    const enrichedDataset = structuredClone(bundledDataset);
+    const target = enrichedDataset.placeableItems[0];
+
+    Object.assign(target, {
+      icon: {
+        path: "game-data/assets/skland/items/machine.basic-smelter/icon.png",
+        sourceUrl: "https://assets.skland.com/example/icon.png",
+        mimeType: "image/png",
+        sha256: "abc123",
+        kind: "icon",
+        alt: "Basic Smelter icon"
+      },
+      sourceRefs: [
+        {
+          endpoint: "/web/v1/wiki/item/info",
+          path: "data.item.icon",
+          label: "sourceItemId",
+          rawValue: "12345"
+        }
+      ]
+    });
+
+    const parsed = rawDatasetFilesSchema.safeParse(enrichedDataset);
+    expect(parsed.success).toBe(true);
+
+    const result = loadDataset(enrichedDataset);
+    expect(result.ok).toBe(true);
+
+    if (!result.ok) {
+      return;
+    }
+
+    const enriched = result.data.placeableItems["machine.basic-smelter"] as {
+      icon?: { path?: string; sourceUrl?: string };
+      sourceRefs?: Array<{ endpoint?: string }>;
+    };
+
+    expect(enriched.icon?.path).toBe(
+      "game-data/assets/skland/items/machine.basic-smelter/icon.png"
+    );
+    expect(enriched.icon?.sourceUrl).toBe("https://assets.skland.com/example/icon.png");
+    expect(enriched.sourceRefs?.[0]?.endpoint).toBe("/web/v1/wiki/item/info");
+  });
 });

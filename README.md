@@ -9,6 +9,10 @@ Browser-first planning workspace for the Arknights: Endfield AIC planner MVP.
 - `pnpm build` creates the production bundle in `dist/`.
 - `pnpm typecheck` runs the TypeScript compiler in no-emit mode.
 
+## Skland crawler
+
+- See [`scripts/skland/README.md`](/Users/cc/Dev/github.com/zmd-aic-planner/.worktrees/aic-planner-mvp/scripts/skland/README.md) for crawler setup, commands, outputs, and troubleshooting.
+
 ## E2E worker contract
 
 - `pnpm test:e2e:smoke` runs the baseline Playwright smoke spec in [`e2e/smoke.spec.ts`](/Users/cc/Dev/github.com/zmd-aic-planner/.worktrees/aic-planner-mvp/e2e/smoke.spec.ts).
@@ -24,6 +28,7 @@ Browser-first planning workspace for the Arknights: Endfield AIC planner MVP.
 
 - `docs/` design documents, architecture notes, and project plans
 - `game-data/` bundled data workspace
+- `scripts/` crawler and tooling entrypoints
 - `src/` planner app shell, styles, and tests
 - `e2e/` Playwright fixtures and smoke coverage
 

@@ -6,14 +6,34 @@ export type SourceMeta = {
   sourceNotes?: string[];
 };
 
+export type SourceRef = {
+  endpoint?: string;
+  path?: string;
+  label?: string;
+  rawValue?: unknown;
+};
+
+export type AssetRef = {
+  kind: "icon" | "illustration" | "sprite" | "other";
+  path?: string;
+  url?: string;
+  sourceUrl?: string;
+  mimeType?: string;
+  sha256?: string;
+  alt?: string;
+};
+
 export type CatalogEntity = {
   id: string;
   kind: string;
   name: string;
   nameZhHans: string;
   description?: string;
+  icon?: AssetRef;
+  illustration?: AssetRef;
   tags?: string[];
   source: SourceMeta;
+  sourceRefs?: SourceRef[];
 };
 
 export type PortDefinition = {
