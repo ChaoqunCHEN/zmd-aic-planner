@@ -1,0 +1,14 @@
+:root {
+  color-scheme: dark;
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  --bg-page: #0b1117;
+  --bg-panel: rgba(16, 28, 38, 0.9);
+  --bg-panel-strong: rgba(21, 36, 49, 0.96);
+  --bg-grid: rgba(71, 128, 155, 0.18);
+  --border-soft: rgba(126, 175, 201, 0.24);
+  --border-strong: rgba(148, 209, 240, 0.36);
+  --text-primary: #f2f5f7;
+  --text-secondary: #bfd0db;
+  --text-accent: #8fd5ff;
+  --shadow-panel: 0 22px 56px rgba(0, 0, 0, 0.38);
+}
