@@ -1,0 +1,12 @@
+{
+  "version": "2026-03-15-mvp-seed",
+  "files": {
+    "placeableItems": "placeable-items.json",
+    "resources": "resources.json",
+    "recipes": "recipes.json",
+    "machineModes": "machine-modes.json",
+    "sitePresets": "site-presets.json",
+    "siteFixtures": "site-fixtures.json",
+    "ruleFragments": "rule-fragments.json"
+  }
+}

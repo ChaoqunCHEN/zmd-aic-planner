@@ -1,0 +1,91 @@
+[
+  {
+    "id": "machine.basic-smelter",
+    "kind": "placeable",
+    "name": "Basic Smelter",
+    "nameZhHans": "基础冶炼炉",
+    "description": "Starter smelter for early MVP production-chain coverage.",
+    "tags": ["machine", "smelter"],
+    "source": {
+      "sourceSystem": "curated",
+      "sourceConfidence": "verified"
+    },
+    "worldCategory": "placeable",
+    "placeableClass": "area",
+    "subtype": "machine",
+    "footprint": {
+      "width": 2,
+      "height": 2
+    },
+    "ports": [
+      {
+        "id": "ore-in",
+        "flow": "input",
+        "resourceIds": ["resource.iron-ore"]
+      },
+      {
+        "id": "ingot-out",
+        "flow": "output",
+        "resourceIds": ["resource.iron-ingot"]
+      }
+    ],
+    "recipeIds": ["recipe.smelt-iron"],
+    "supportedModeIds": [
+      "mode.basic-smelter.standard",
+      "mode.basic-smelter.efficient"
+    ],
+    "defaultModeId": "mode.basic-smelter.standard"
+  },
+  {
+    "id": "terminal.ore-intake",
+    "kind": "placeable",
+    "name": "Ore Intake Terminal",
+    "nameZhHans": "矿石输入终端",
+    "description": "Represents imported raw ore entering the site.",
+    "tags": ["terminal", "input"],
+    "source": {
+      "sourceSystem": "curated",
+      "sourceConfidence": "verified"
+    },
+    "worldCategory": "placeable",
+    "placeableClass": "area",
+    "subtype": "terminal",
+    "footprint": {
+      "width": 1,
+      "height": 1
+    },
+    "ports": [
+      {
+        "id": "ore-out",
+        "flow": "output",
+        "resourceIds": ["resource.iron-ore"]
+      }
+    ]
+  },
+  {
+    "id": "terminal.ingot-output",
+    "kind": "placeable",
+    "name": "Ingot Output Terminal",
+    "nameZhHans": "锭材输出终端",
+    "description": "Represents finished ingots leaving the site.",
+    "tags": ["terminal", "output"],
+    "source": {
+      "sourceSystem": "curated",
+      "sourceConfidence": "verified"
+    },
+    "worldCategory": "placeable",
+    "placeableClass": "area",
+    "subtype": "terminal",
+    "footprint": {
+      "width": 1,
+      "height": 1
+    },
+    "ports": [
+      {
+        "id": "ingot-in",
+        "flow": "input",
+        "resourceIds": ["resource.iron-ingot"]
+      }
+    ]
+  }
+]

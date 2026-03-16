@@ -1,0 +1,30 @@
+[
+  {
+    "id": "resource.iron-ore",
+    "kind": "resource",
+    "name": "Iron Ore",
+    "nameZhHans": "铁矿石",
+    "description": "Raw ore for the MVP smelting chain.",
+    "tags": ["ore", "input"],
+    "source": {
+      "sourceSystem": "curated",
+      "sourceConfidence": "verified"
+    },
+    "referenceKind": "resource",
+    "unit": "items/min"
+  },
+  {
+    "id": "resource.iron-ingot",
+    "kind": "resource",
+    "name": "Iron Ingot",
+    "nameZhHans": "铁锭",
+    "description": "Smelted output from the MVP production chain.",
+    "tags": ["ingot", "output"],
+    "source": {
+      "sourceSystem": "curated",
+      "sourceConfidence": "verified"
+    },
+    "referenceKind": "resource",
+    "unit": "items/min"
+  }
+]

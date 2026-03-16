@@ -1,0 +1,35 @@
+[
+  {
+    "id": "mode.basic-smelter.standard",
+    "kind": "machine-mode",
+    "name": "Standard Output",
+    "nameZhHans": "标准产出",
+    "description": "Balanced mode for the starter smelter.",
+    "tags": ["default"],
+    "source": {
+      "sourceSystem": "curated",
+      "sourceConfidence": "verified"
+    },
+    "referenceKind": "machine-mode",
+    "machineId": "machine.basic-smelter",
+    "throughputMultiplier": 1,
+    "powerMultiplier": 1
+  },
+  {
+    "id": "mode.basic-smelter.efficient",
+    "kind": "machine-mode",
+    "name": "Efficient Burn",
+    "nameZhHans": "节能燃烧",
+    "description": "Alternative mode that trades throughput for lower power usage.",
+    "tags": ["alternative"],
+    "source": {
+      "sourceSystem": "curated",
+      "sourceConfidence": "probable",
+      "sourceNotes": ["Placeholder alternative mode for MVP UI and validation coverage."]
+    },
+    "referenceKind": "machine-mode",
+    "machineId": "machine.basic-smelter",
+    "throughputMultiplier": 0.75,
+    "powerMultiplier": 0.8
+  }
+]

@@ -8,7 +8,7 @@
 - Active worktree: `/Users/cc/Dev/github.com/zmd-aic-planner/.worktrees/aic-planner-mvp`
 - Overall progress:
   - [x] Task 0: Repository bootstrap, tooling, and E2E harness
-  - [ ] Task 1: Core types and dataset contracts
+  - [x] Task 1: Core types and dataset contracts
   - [ ] Task 2: Plan document, geometry, and editing operations
   - [ ] Task 3: Connections, validation passes, and diagnostics
   - [ ] Task 4: Steady-state analysis and codecs
@@ -18,7 +18,7 @@
   - [ ] Task 8: Connection editing, node configuration, and project flows
   - [ ] Task 9: Curated MVP data and encyclopedia quality
   - [ ] Task 10: End-to-end acceptance, performance sanity, and finish
-- Current focus: Task 1 implementation planning and delegation
+- Current focus: Task 2 plan document and editing operations
 
 **Goal:** Build the browser-first Arknights: Endfield AIC Planner MVP in this repo, using curated seed data, local-first persistence, diagnostics, and a desktop-focused grid editor.
 
