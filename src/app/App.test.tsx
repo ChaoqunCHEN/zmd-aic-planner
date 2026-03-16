@@ -31,7 +31,10 @@ describe("package scripts", () => {
       build: expect.stringContaining("vite build"),
       test: expect.any(String),
       "test:e2e:smoke": expect.any(String),
-      typecheck: expect.any(String)
+      typecheck: expect.any(String),
+      "crawl:skland:equipment": expect.any(String),
+      "crawl:skland:equipment:resume": expect.any(String),
+      "crawl:skland:equipment:smoke": expect.any(String)
     });
   });
 });

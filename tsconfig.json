@@ -17,6 +17,6 @@
     "jsx": "react-jsx",
     "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom", "node"]
   },
-  "include": ["src", "e2e"],
+  "include": ["src", "scripts", "e2e"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
