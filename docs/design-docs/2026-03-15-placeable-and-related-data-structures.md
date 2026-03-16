@@ -407,11 +407,22 @@ type SourceRef = {
 
 ```ts
 type AssetRef = {
-  url: string;
   kind: "icon" | "illustration" | "sprite" | "other";
+  path?: string;
+  url?: string;
+  sourceUrl?: string;
+  mimeType?: string;
+  sha256?: string;
   alt?: string;
 };
 ```
+
+`AssetRef` supports both planner-owned mirrored files and remote source assets:
+
+- use `path` for repo-relative mirrored assets stored in `game-data/`
+- use `sourceUrl` for the original upstream asset URL when mirrored
+- keep `url` only for records that intentionally reference a remote asset directly
+- use `mimeType` and `sha256` for asset validation, dedupe, and refresh checks
 
 ### 10.4 `PortDefinition`
 
@@ -441,7 +452,13 @@ type PortDefinition = {
     "en": "General-purpose production machine.",
     "zh-Hans": "通用生产设备。"
   },
-  "icon": { "url": "https://example.com/icons/assembler-alpha.png", "kind": "icon" },
+  "icon": {
+    "path": "game-data/assets/skland/items/machine.assembler.alpha/icon.png",
+    "sourceUrl": "https://example.com/icons/assembler-alpha.png",
+    "mimeType": "image/png",
+    "sha256": "7d3b6c7f-example",
+    "kind": "icon"
+  },
   "source": {
     "sourceSystem": "skland",
     "sourceConfidence": "partial",

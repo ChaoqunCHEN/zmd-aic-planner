@@ -1,0 +1,17 @@
+[
+  {
+    "id": "fixture.iron-deposit",
+    "kind": "site-fixture-type",
+    "name": "Iron Deposit",
+    "nameZhHans": "铁矿脉",
+    "description": "Fixed ore deposit used to anchor the starter site preset.",
+    "tags": ["deposit"],
+    "source": {
+      "sourceSystem": "curated",
+      "sourceConfidence": "verified"
+    },
+    "referenceKind": "site-fixture-type",
+    "fixtureCategory": "resource-deposit",
+    "resourceId": "resource.iron-ore"
+  }
+]

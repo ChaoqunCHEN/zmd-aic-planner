@@ -1,0 +1,1 @@
+- `2026-03-15-skland-crawler-guarded-api.md`: Skland wiki endpoints are confirmed from the shipped client bundle, but this environment still receives guarded `请求异常` responses even after browser bootstrap unless request signing/context is matched more closely.

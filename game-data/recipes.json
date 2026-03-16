@@ -1,0 +1,29 @@
+[
+  {
+    "id": "recipe.smelt-iron",
+    "kind": "recipe",
+    "name": "Smelt Iron Ore",
+    "nameZhHans": "冶炼铁矿石",
+    "description": "Converts ore into ingots for the seed-data chain.",
+    "tags": ["smelting"],
+    "source": {
+      "sourceSystem": "curated",
+      "sourceConfidence": "verified"
+    },
+    "referenceKind": "recipe",
+    "machineId": "machine.basic-smelter",
+    "durationSeconds": 4,
+    "inputs": [
+      {
+        "resourceId": "resource.iron-ore",
+        "amount": 1
+      }
+    ],
+    "outputs": [
+      {
+        "resourceId": "resource.iron-ingot",
+        "amount": 1
+      }
+    ]
+  }
+]

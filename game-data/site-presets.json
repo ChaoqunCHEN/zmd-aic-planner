@@ -1,0 +1,41 @@
+[
+  {
+    "id": "site.training-yard",
+    "kind": "site-preset",
+    "name": "Training Yard",
+    "nameZhHans": "训练场工地",
+    "description": "Compact starter site with one blocked strip and one ore deposit.",
+    "tags": ["starter", "compact"],
+    "source": {
+      "sourceSystem": "curated",
+      "sourceConfidence": "verified"
+    },
+    "referenceKind": "site-preset",
+    "width": 12,
+    "height": 10,
+    "buildableZones": [
+      {
+        "x": 0,
+        "y": 0,
+        "width": 12,
+        "height": 10
+      }
+    ],
+    "blockedZones": [
+      {
+        "x": 5,
+        "y": 0,
+        "width": 1,
+        "height": 3
+      }
+    ],
+    "fixtures": [
+      {
+        "id": "fixture.training-yard.ore-deposit",
+        "fixtureTypeId": "fixture.iron-deposit",
+        "x": 1,
+        "y": 1
+      }
+    ]
+  }
+]

@@ -26,6 +26,7 @@ Important implementation note:
 - Direct API calls from this environment returned `{"code":10000,"message":"请求异常"}`.
 - Endpoint names and query routing are confirmed.
 - Exact live response-body fields still require crawler-side inspection in a real request context.
+- The crawler should bootstrap a browser session first, then use that request context for API access instead of blind raw HTTP retries.
 
 ## 3. Source Levels
 
@@ -97,6 +98,11 @@ Optional debug artifacts are allowed, but they are secondary:
 - endpoint audit logs
 - field-mapping reports
 
+The crawler should also mirror confirmed item images into planner-owned assets:
+
+- `game-data/assets/skland/items/...` for canonical mirrored files
+- `game-data/.cache/skland/...` for non-canonical request/detail caches and run summaries
+
 ## 5. Normalization Rules
 
 ### 5.1 General Rules
@@ -107,6 +113,7 @@ Optional debug artifacts are allowed, but they are secondary:
 - Mark uncertain fields with confidence metadata.
 - Do not collapse unrelated concepts into one record.
 - Always output both `name` and `nameZhHans` for normalized entities.
+- Prefer planner-owned mirrored image assets over hotlinking live upstream URLs.
 
 ### 5.2 Identity Rules
 
@@ -151,6 +158,7 @@ Unless live payload inspection confirms otherwise:
 - treat behavior/stat fields as optional
 - treat planner-added derived fields as inferred
 - never fabricate exact numeric values from presentation alone
+- if only the Chinese item name is source-confirmed, use manual enrichment or a stable placeholder for `name` and mark confidence accordingly
 
 ## 6. What To Collect
 
@@ -333,6 +341,7 @@ These must be marked via `sourceNotes` or mapping documentation as inferred norm
 6. Deduplicate by planner id.
 7. Validate cross-record references.
 8. Write domain-sliced JSON outputs.
+9. Mirror confirmed item images and store planner-owned `AssetRef.path` plus upstream `sourceUrl`.
 
 ## 10. Validation Checklist
 
@@ -381,6 +390,13 @@ This is illustrative only.
       "rawValue": "12345"
     }
   ],
+  "icon": {
+    "path": "game-data/assets/skland/items/belt.mk1/icon.png",
+    "sourceUrl": "https://example.com/source/belt.png",
+    "mimeType": "image/png",
+    "sha256": "f00ba4-example",
+    "kind": "icon"
+  },
   "worldCategory": "placeable",
   "aicCategory": "logistics",
   "placeableClass": "linear",

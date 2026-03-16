@@ -1,0 +1,20 @@
+[
+  {
+    "id": "rule.training-yard.iron-ore-cap",
+    "kind": "rule-fragment",
+    "name": "Training Yard Iron Ore Intake Cap",
+    "nameZhHans": "训练场铁矿输入上限",
+    "description": "Warn when external iron ore intake exceeds the curated starter-site cap.",
+    "tags": ["cap", "site-rule"],
+    "source": {
+      "sourceSystem": "curated",
+      "sourceConfidence": "verified"
+    },
+    "referenceKind": "rule-fragment",
+    "ruleType": "external-input-cap",
+    "resourceId": "resource.iron-ore",
+    "sitePresetIds": ["site.training-yard"],
+    "defaultCap": 120,
+    "unit": "items/min"
+  }
+]
