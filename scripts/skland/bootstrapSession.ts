@@ -4,6 +4,8 @@ import { sklandCrawlerConfig } from "./config";
 import type { SklandSessionContext } from "./types";
 
 const CATALOG_URL = "https://wiki.skland.com/endfield/catalog";
+const REAL_CHROME_USER_AGENT =
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36";
 
 export type BootstrappedSession = {
   browser: Browser;
@@ -25,9 +27,20 @@ export async function bootstrapSklandSession(input?: {
   const browser = await chromium.launch({
     headless: input?.headless ?? true
   });
-  const context = await browser.newContext();
+  const context = await browser.newContext({
+    userAgent: REAL_CHROME_USER_AGENT,
+    locale: "zh-CN",
+    timezoneId: "Asia/Shanghai",
+    viewport: {
+      width: 1440,
+      height: 900
+    },
+    extraHTTPHeaders: {
+      "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8"
+    }
+  });
   const page = await context.newPage();
-  const userAgent = await page.evaluate(() => navigator.userAgent);
+  const userAgent = REAL_CHROME_USER_AGENT;
   const url = new URL(CATALOG_URL);
   url.searchParams.set("typeMainId", typeMainId);
   url.searchParams.set("typeSubId", typeSubId);
@@ -36,7 +49,7 @@ export async function bootstrapSklandSession(input?: {
     waitUntil: "domcontentloaded",
     timeout: input?.timeoutMs ?? sklandCrawlerConfig.requestTimeoutMs
   });
-  await page.waitForTimeout(2_000);
+  await page.waitForTimeout(3_000);
 
   const sessionContext: SklandSessionContext = {
     userAgent,

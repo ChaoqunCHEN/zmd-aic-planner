@@ -84,4 +84,28 @@ describe("extractDetailRecord", () => {
       }
     });
   });
+
+  it("extracts the live Skland cover image from brief metadata when direct image fields are absent", () => {
+    const detail = extractDetailRecord(
+      {
+        item: {
+          itemId: "752",
+          name: "天有洪炉",
+          brief: {
+            cover: "https://bbs.hycdn.cn/image/2025/12/19/279234/c6fbccc8a4fd3f73abce13fb7ffde02a.png"
+          }
+        }
+      },
+      {
+        sourceItemId: "752",
+        typeMainId: "1",
+        typeSubId: "5"
+      }
+    );
+
+    expect(detail.iconUrl).toBe(
+      "https://bbs.hycdn.cn/image/2025/12/19/279234/c6fbccc8a4fd3f73abce13fb7ffde02a.png"
+    );
+    expect(detail.illustrationUrl).toBeUndefined();
+  });
 });

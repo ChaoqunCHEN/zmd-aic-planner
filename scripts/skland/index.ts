@@ -2,6 +2,7 @@ import { resolve } from "node:path";
 import { bootstrapSklandSession } from "./bootstrapSession";
 import { PlaywrightSklandClient } from "./client";
 import { sklandCrawlerConfig } from "./config";
+import { discoverEquipmentItems } from "./discover";
 import { runSklandEquipmentCrawler } from "./pipeline";
 
 type CliArgs = {
@@ -63,11 +64,13 @@ async function main() {
   try {
     const client = new PlaywrightSklandClient({
       request: session.request,
-      sessionContext: session.sessionContext
+      sessionContext: session.sessionContext,
+      page: session.page
     });
 
     if (args.smoke) {
-      const discoveries = await client.getItemList({
+      const discoveries = await discoverEquipmentItems({
+        client,
         typeMainId: args.typeMainId,
         typeSubId: args.typeSubId
       });
