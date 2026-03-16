@@ -40,6 +40,14 @@
   line-height: 1.45;
 }
 
+.factList {
+  margin: 12px 0 0;
+  padding-left: 18px;
+  color: var(--text-secondary);
+  display: grid;
+  gap: 4px;
+}
+
 .list {
   margin-top: 14px;
   display: grid;

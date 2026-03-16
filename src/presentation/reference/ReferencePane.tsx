@@ -12,6 +12,7 @@ type ReferencePaneProps = {
   entries: ReferenceEntry[];
   focusTitle: string | null;
   focusSummary: string | null;
+  focusFacts?: string[];
   onQueryChange: (value: string) => void;
 };
 
@@ -20,6 +21,7 @@ export function ReferencePane({
   entries,
   focusTitle,
   focusSummary,
+  focusFacts = [],
   onQueryChange
 }: ReferencePaneProps) {
   const deferredQuery = useDeferredValue(query);
@@ -42,6 +44,13 @@ export function ReferencePane({
         <div className={styles.focusCard}>
           <h3>{focusTitle}</h3>
           <p>{focusSummary}</p>
+          {focusFacts.length > 0 ? (
+            <ul className={styles.factList}>
+              {focusFacts.map((fact) => (
+                <li key={fact}>{fact}</li>
+              ))}
+            </ul>
+          ) : null}
         </div>
       ) : null}
       <div className={styles.list}>

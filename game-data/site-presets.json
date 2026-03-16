@@ -37,5 +37,59 @@
         "y": 1
       }
     ]
+  },
+  {
+    "id": "site.survey-annex",
+    "kind": "site-preset",
+    "name": "Survey Annex",
+    "nameZhHans": "测绘附属区",
+    "description": "Alternate compact site with a central obstruction and a tighter ore intake budget.",
+    "tags": ["starter", "alternate"],
+    "source": {
+      "sourceSystem": "curated",
+      "sourceConfidence": "probable",
+      "sourceNotes": [
+        "Added for MVP project-preset selection and site metadata browsing."
+      ]
+    },
+    "referenceKind": "site-preset",
+    "width": 14,
+    "height": 9,
+    "buildableZones": [
+      {
+        "x": 0,
+        "y": 0,
+        "width": 14,
+        "height": 9
+      }
+    ],
+    "blockedZones": [
+      {
+        "x": 6,
+        "y": 2,
+        "width": 2,
+        "height": 3
+      },
+      {
+        "x": 11,
+        "y": 0,
+        "width": 1,
+        "height": 2
+      }
+    ],
+    "fixtures": [
+      {
+        "id": "fixture.survey-annex.ore-deposit",
+        "fixtureTypeId": "fixture.iron-deposit",
+        "x": 2,
+        "y": 6
+      },
+      {
+        "id": "fixture.survey-annex.collapse",
+        "fixtureTypeId": "fixture.collapsed-walkway",
+        "x": 6,
+        "y": 2
+      }
+    ]
   }
 ]

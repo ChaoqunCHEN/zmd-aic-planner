@@ -84,6 +84,47 @@ export function App() {
         rule.sitePresetIds.includes(plan.siteConfig.sitePresetId)
     );
   }, [plan, plannerState.dataset.ruleFragments]);
+  const referenceFacts = useMemo(() => {
+    if (!referenceContext) {
+      return [];
+    }
+
+    const facts: string[] = [];
+    const activeConfidence =
+      referenceContext.mode?.source.sourceConfidence ??
+      referenceContext.recipe?.source.sourceConfidence ??
+      referenceContext.placeable.source.sourceConfidence;
+
+    if (referenceContext.mode) {
+      facts.push(`Active mode: ${referenceContext.mode.name}`);
+      facts.push(
+        `Throughput multiplier: ${referenceContext.mode.throughputMultiplier.toFixed(2).replace(/\.00$/, "")}x`
+      );
+    }
+
+    if (referenceContext.recipe) {
+      const inputNames = referenceContext.recipe.inputs
+        .map(
+          (input) => plannerState.dataset.resources[input.resourceId]?.name ?? input.resourceId
+        )
+        .join(" + ");
+      const outputNames = referenceContext.recipe.outputs
+        .map(
+          (output) => plannerState.dataset.resources[output.resourceId]?.name ?? output.resourceId
+        )
+        .join(" + ");
+
+      facts.push(`${inputNames} -> ${outputNames}`);
+    }
+
+    facts.push(`Source confidence: ${activeConfidence}`);
+
+    if (referenceContext.mode?.source.sourceNotes?.length) {
+      facts.push(referenceContext.mode.source.sourceNotes[0]!);
+    }
+
+    return facts;
+  }, [plannerState.dataset.resources, referenceContext]);
 
   useEffect(() => {
     if (!store.getState().plan) {
@@ -122,6 +163,21 @@ export function App() {
     ...Object.values(plannerState.dataset.machineModes).map((item) => ({
       id: item.id,
       kindLabel: "Mode",
+      name: item.name
+    })),
+    ...Object.values(plannerState.dataset.sitePresets).map((item) => ({
+      id: item.id,
+      kindLabel: "Site Preset",
+      name: item.name
+    })),
+    ...Object.values(plannerState.dataset.ruleFragments).map((item) => ({
+      id: item.id,
+      kindLabel: "Site Rule",
+      name: item.name
+    })),
+    ...Object.values(plannerState.dataset.siteFixtures).map((item) => ({
+      id: item.id,
+      kindLabel: "Site Fixture",
       name: item.name
     }))
   ];
@@ -218,10 +274,11 @@ export function App() {
             }
             referencePane={
               <ReferencePane
-                entries={referenceEntries}
-                focusSummary={
-                  referenceContext?.placeable.description ?? referenceContext?.recipe?.description ?? null
-                }
+              entries={referenceEntries}
+              focusFacts={referenceFacts}
+              focusSummary={
+                referenceContext?.placeable.description ?? referenceContext?.recipe?.description ?? null
+              }
                 focusTitle={referenceContext?.placeable.name ?? null}
                 onQueryChange={setReferenceQuery}
                 query={referenceQuery}
