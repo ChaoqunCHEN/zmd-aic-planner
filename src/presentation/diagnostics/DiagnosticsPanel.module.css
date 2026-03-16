@@ -1,0 +1,50 @@
+.panel {
+  padding: 16px;
+  border: 1px solid var(--border-soft);
+  border-radius: 18px;
+  background: var(--bg-panel);
+  box-shadow: var(--shadow-panel);
+}
+
+.heading {
+  margin: 0 0 12px;
+  font-size: 1rem;
+}
+
+.empty {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.list {
+  display: grid;
+  gap: 10px;
+}
+
+.item {
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 12px;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}
+
+.selected {
+  border-color: var(--border-strong);
+}
+
+.code {
+  margin: 0 0 6px;
+  color: var(--text-accent);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.message {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}

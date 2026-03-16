@@ -10,6 +10,7 @@ describe("App shell smoke", () => {
 
     expect(screen.getByTestId("app-shell")).toBeVisible();
     expect(screen.getByTestId("empty-workbench")).toBeVisible();
+    expect(screen.getByTestId("planner-workspace")).toBeVisible();
   });
 
   it("shows unofficial labeling for the product", () => {

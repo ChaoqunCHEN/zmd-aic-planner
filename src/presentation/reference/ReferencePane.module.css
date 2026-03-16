@@ -1,0 +1,64 @@
+.panel {
+  padding: 16px;
+  border: 1px solid var(--border-soft);
+  border-radius: 18px;
+  background: var(--bg-panel);
+  box-shadow: var(--shadow-panel);
+}
+
+.heading {
+  margin: 0 0 12px;
+  font-size: 1rem;
+}
+
+.search {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+}
+
+.focusCard {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+  background: var(--bg-panel-strong);
+}
+
+.focusCard h3,
+.list h3 {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+}
+
+.focusCard p {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.list {
+  margin-top: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.entry {
+  padding: 10px 12px;
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.entryName {
+  margin: 0 0 4px;
+}
+
+.entryMeta {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+}

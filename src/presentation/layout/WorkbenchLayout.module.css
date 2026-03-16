@@ -1,0 +1,38 @@
+.layout {
+  min-height: 62vh;
+  display: grid;
+  grid-template-columns: minmax(0, 2.2fr) minmax(280px, 0.95fr) minmax(280px, 1fr);
+  gap: 16px;
+}
+
+.workspaceColumn,
+.sideColumn,
+.referenceColumn {
+  display: grid;
+  gap: 16px;
+}
+
+.workspaceColumn {
+  min-width: 0;
+}
+
+.sideColumn,
+.referenceColumn {
+  align-content: start;
+}
+
+@media (max-width: 1200px) {
+  .layout {
+    grid-template-columns: minmax(0, 1.4fr) minmax(260px, 1fr);
+  }
+
+  .referenceColumn {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 860px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
