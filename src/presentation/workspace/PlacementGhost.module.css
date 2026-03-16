@@ -1,0 +1,15 @@
+.ghost {
+  position: absolute;
+  border-radius: 10px;
+  pointer-events: none;
+}
+
+.valid {
+  border: 1px dashed rgba(143, 213, 255, 0.9);
+  background: rgba(143, 213, 255, 0.12);
+}
+
+.invalid {
+  border: 1px dashed rgba(255, 143, 143, 0.9);
+  background: rgba(255, 143, 143, 0.14);
+}

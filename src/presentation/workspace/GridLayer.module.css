@@ -1,0 +1,20 @@
+.grid {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  padding: 12px;
+}
+
+.cell {
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(143, 213, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+}
+
+.blocked {
+  background: rgba(209, 87, 87, 0.24);
+  border-color: rgba(255, 143, 143, 0.24);
+}

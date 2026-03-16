@@ -1,0 +1,25 @@
+.layer {
+  position: absolute;
+  inset: 12px;
+  pointer-events: none;
+}
+
+.node {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  background: rgba(18, 35, 46, 0.9);
+  color: var(--text-primary);
+  pointer-events: auto;
+  cursor: pointer;
+  text-align: center;
+  font-size: 0.8rem;
+  padding: 4px;
+}
+
+.selected {
+  border-color: var(--border-strong);
+  box-shadow: 0 0 0 1px rgba(143, 213, 255, 0.35);
+}

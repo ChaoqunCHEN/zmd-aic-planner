@@ -13,6 +13,7 @@ import { DiagnosticsPanel } from "../presentation/diagnostics/DiagnosticsPanel";
 import { SelectionInspector } from "../presentation/inspector/SelectionInspector";
 import { ProjectToolbar } from "../presentation/project/ProjectToolbar";
 import { ReferencePane, type ReferenceEntry } from "../presentation/reference/ReferencePane";
+import { PlannerWorkspace } from "../presentation/workspace/PlannerWorkspace";
 
 function createBrowserStorage() {
   if (typeof window === "undefined") {
@@ -102,14 +103,7 @@ export function App() {
         <WorkbenchLayout
           workspace={
             <section className="workbench-frame" data-testid="empty-workbench">
-              <div className="workbench-grid" aria-hidden="true" />
-              <div className="workbench-card" data-testid="planner-workspace">
-                <h2>Planner workspace</h2>
-                <p>
-                  Task 6 establishes the persistent shell. Task 7 will replace this
-                  placeholder with the interactive site grid editor.
-                </p>
-              </div>
+              <PlannerWorkspace store={store} />
             </section>
           }
           inspector={
