@@ -1,0 +1,60 @@
+.panel {
+  padding: 16px;
+  border: 1px solid var(--border-soft);
+  border-radius: 18px;
+  background: var(--bg-panel);
+  box-shadow: var(--shadow-panel);
+}
+
+.heading {
+  margin: 0 0 12px;
+  font-size: 1rem;
+}
+
+.empty {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.details {
+  display: grid;
+  gap: 10px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.fieldLabel {
+  color: var(--text-accent);
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.select {
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  background: rgba(18, 35, 46, 0.9);
+  color: var(--text-primary);
+  padding: 10px 12px;
+}
+
+.name {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.meta {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.list {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--text-secondary);
+}

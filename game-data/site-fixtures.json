@@ -13,5 +13,22 @@
     "referenceKind": "site-fixture-type",
     "fixtureCategory": "resource-deposit",
     "resourceId": "resource.iron-ore"
+  },
+  {
+    "id": "fixture.collapsed-walkway",
+    "kind": "site-fixture-type",
+    "name": "Collapsed Walkway",
+    "nameZhHans": "坍塌栈道",
+    "description": "Obstacle fixture used to explain unusable tiles in the alternate survey site.",
+    "tags": ["obstacle"],
+    "source": {
+      "sourceSystem": "curated",
+      "sourceConfidence": "probable",
+      "sourceNotes": [
+        "Placeholder obstacle metadata for MVP reference browsing and blocked-cell context."
+      ]
+    },
+    "referenceKind": "site-fixture-type",
+    "fixtureCategory": "obstacle"
   }
 ]

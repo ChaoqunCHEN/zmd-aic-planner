@@ -16,5 +16,26 @@
     "sitePresetIds": ["site.training-yard"],
     "defaultCap": 120,
     "unit": "items/min"
+  },
+  {
+    "id": "rule.survey-annex.iron-ore-cap",
+    "kind": "rule-fragment",
+    "name": "Survey Annex Iron Ore Intake Cap",
+    "nameZhHans": "测绘附属区铁矿输入上限",
+    "description": "Lower ore intake ceiling for the alternate survey site.",
+    "tags": ["cap", "site-rule"],
+    "source": {
+      "sourceSystem": "curated",
+      "sourceConfidence": "probable",
+      "sourceNotes": [
+        "Curated alternate-site cap for MVP preset and encyclopedia coverage."
+      ]
+    },
+    "referenceKind": "rule-fragment",
+    "ruleType": "external-input-cap",
+    "resourceId": "resource.iron-ore",
+    "sitePresetIds": ["site.survey-annex"],
+    "defaultCap": 90,
+    "unit": "items/min"
   }
 ]

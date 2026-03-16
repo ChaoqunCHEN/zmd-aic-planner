@@ -9,16 +9,16 @@
 - Overall progress:
   - [x] Task 0: Repository bootstrap, tooling, and E2E harness
   - [x] Task 1: Core types and dataset contracts
-  - [ ] Task 2: Plan document, geometry, and editing operations
-  - [ ] Task 3: Connections, validation passes, and diagnostics
-  - [ ] Task 4: Steady-state analysis and codecs
-  - [ ] Task 5: Planner store, commands, undo/redo, and autosave
-  - [ ] Task 6: Workbench shell and supporting panels
-  - [ ] Task 7: Grid workspace, selection, and placement editing
-  - [ ] Task 8: Connection editing, node configuration, and project flows
-  - [ ] Task 9: Curated MVP data and encyclopedia quality
-  - [ ] Task 10: End-to-end acceptance, performance sanity, and finish
-- Current focus: Task 2 plan document and editing operations
+  - [x] Task 2: Plan document, geometry, and editing operations
+  - [x] Task 3: Connections, validation passes, and diagnostics
+  - [x] Task 4: Steady-state analysis and codecs
+  - [x] Task 5: Planner store, commands, undo/redo, and autosave
+  - [x] Task 6: Workbench shell and supporting panels
+  - [x] Task 7: Grid workspace, selection, and placement editing
+  - [x] Task 8: Connection editing, node configuration, and project flows
+  - [x] Task 9: Curated MVP data and encyclopedia quality
+  - [x] Task 10: End-to-end acceptance, performance sanity, and finish
+- Current focus: Final verification complete; ready for branch finish flow
 
 **Goal:** Build the browser-first Arknights: Endfield AIC Planner MVP in this repo, using curated seed data, local-first persistence, diagnostics, and a desktop-focused grid editor.
 

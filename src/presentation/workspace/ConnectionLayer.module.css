@@ -1,0 +1,22 @@
+.layer {
+  position: absolute;
+  inset: 12px;
+  width: calc(100% - 24px);
+  height: calc(100% - 24px);
+  pointer-events: none;
+}
+
+.edge {
+  stroke: rgba(143, 213, 255, 0.62);
+  stroke-width: 2;
+  fill: none;
+  pointer-events: none;
+}
+
+.hitArea {
+  stroke: transparent;
+  stroke-width: 12;
+  fill: none;
+  pointer-events: stroke;
+  cursor: pointer;
+}
