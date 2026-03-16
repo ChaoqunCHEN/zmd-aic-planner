@@ -1,2 +1,3 @@
 - `2026-03-15-skland-crawler-guarded-api.md`: Skland wiki endpoints are confirmed from the shipped client bundle, but this environment still receives guarded `请求异常` responses even after browser bootstrap unless request signing/context is matched more closely.
 - `2026-03-16-skland-live-images-and-merge.md`: Live equipment icons currently come from `item.brief.cover`, and canonical crawler writes must merge Skland placeables into the existing dataset instead of replacing curated records.
+- `2026-03-16-learnings-path-location.md`: In this repository, tracked learnings live under `docs/learnings/`, even though some project instructions still refer to `/learnings`.
