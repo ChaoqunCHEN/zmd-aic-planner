@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useStore } from "zustand";
 import type { PlannerStore } from "../../application/store/plannerStore";
 import { selectSelectedNode } from "../../application/store/selectors";
+import type { PortDefinition } from "../../domain/types";
 import { getRotatedFootprintSize } from "../../domain/plan/geometry";
 import { moveNode, placeNode } from "../../domain/plan/operations";
 import { ConnectionLayer } from "./ConnectionLayer";
@@ -32,6 +33,10 @@ export function PlannerWorkspace({ store }: PlannerWorkspaceProps) {
   const plan = plannerState.plan;
   const dataset = plannerState.dataset;
   const [pendingCatalogId, setPendingCatalogId] = useState<string | null>(null);
+  const [pendingConnection, setPendingConnection] = useState<{
+    nodeId: string;
+    portId: string;
+  } | null>(null);
   const [hoverCell, setHoverCell] = useState<{ x: number; y: number } | null>(null);
 
   const sitePreset = plan ? dataset.sitePresets[plan.siteConfig.sitePresetId] : null;
@@ -54,9 +59,19 @@ export function PlannerWorkspace({ store }: PlannerWorkspaceProps) {
   }, [sitePreset]);
 
   const catalogItems = Object.values(dataset.placeableItems);
+  const portDefinitionsByNodeId = useMemo<Record<string, PortDefinition[]>>(
+    () =>
+      Object.fromEntries(
+        Object.values(plan?.nodes ?? {}).map((node) => [
+          node.id,
+          dataset.placeableItems[node.catalogId]?.ports ?? []
+        ])
+      ),
+    [dataset.placeableItems, plan?.nodes]
+  );
 
   const ghostCandidate = useMemo(() => {
-    if (!plan || !hoverCell) {
+    if (!plan || !hoverCell || pendingConnection) {
       return null;
     }
 
@@ -93,7 +108,7 @@ export function PlannerWorkspace({ store }: PlannerWorkspaceProps) {
     }
 
     return null;
-  }, [dataset, hoverCell, pendingCatalogId, plan, selectedNode]);
+  }, [dataset, hoverCell, pendingCatalogId, pendingConnection, plan, selectedNode]);
 
   usePlannerHotkeys({
     canDelete: Boolean(selectedNode && plan),
@@ -120,6 +135,11 @@ export function PlannerWorkspace({ store }: PlannerWorkspaceProps) {
     return null;
   }
 
+  const canvasWidth =
+    sitePreset.width * GRID_CELL_SIZE + (sitePreset.width - 1) * GRID_CELL_GAP;
+  const canvasHeight =
+    sitePreset.height * GRID_CELL_SIZE + (sitePreset.height - 1) * GRID_CELL_GAP;
+
   return (
     <section className={styles.workspace} data-testid="planner-workspace">
       <div className={styles.controls}>
@@ -132,6 +152,7 @@ export function PlannerWorkspace({ store }: PlannerWorkspaceProps) {
               data-testid={`catalog-item:${item.id}`}
               onClick={() => {
                 setPendingCatalogId(item.id);
+                setPendingConnection(null);
                 plannerState.commands.selectNode(null);
               }}
               type="button"
@@ -173,21 +194,23 @@ export function PlannerWorkspace({ store }: PlannerWorkspaceProps) {
       </div>
       <p className={styles.hint}>
         Click a catalog item, then click the grid to place it. Select an existing node
-        and click a new cell to move it. Press <strong>R</strong> to rotate or{" "}
-        <strong>Delete</strong> to remove.
+        and click a new cell to move it. Click an output port, then an input port to
+        author a connection. Press <strong>R</strong> to rotate or <strong>Delete</strong>{" "}
+        to remove.
       </p>
       <div
         className={styles.canvas}
         style={{
-          width: sitePreset.width * GRID_CELL_SIZE + (sitePreset.width - 1) * GRID_CELL_GAP + GRID_PADDING * 2,
-          minHeight:
-            sitePreset.height * GRID_CELL_SIZE + (sitePreset.height - 1) * GRID_CELL_GAP + GRID_PADDING * 2
+          width: canvasWidth + GRID_PADDING * 2,
+          minHeight: canvasHeight + GRID_PADDING * 2
         }}
       >
         <GridLayer
           blockedCells={blockedCells}
           height={sitePreset.height}
           onCellClick={(x, y) => {
+            setPendingConnection(null);
+
             if (pendingCatalogId) {
               const result = placeNode(plan, dataset, {
                 nodeId: `node-${Date.now()}`,
@@ -217,10 +240,47 @@ export function PlannerWorkspace({ store }: PlannerWorkspaceProps) {
           onCellLeave={() => setHoverCell(null)}
           width={sitePreset.width}
         />
-        <ConnectionLayer nodes={Object.values(plan.nodes)} />
+        <ConnectionLayer
+          edges={Object.values(plan.edges)}
+          height={canvasHeight}
+          nodes={Object.values(plan.nodes)}
+          onSelectEdge={(edgeId) => {
+            plannerState.commands.disconnectEdge(edgeId);
+            setPendingConnection(null);
+          }}
+          portDefinitionsByNodeId={portDefinitionsByNodeId}
+          width={canvasWidth}
+        />
         <NodeLayer
           nodes={Object.values(plan.nodes)}
+          onSelectPort={(input) => {
+            setPendingCatalogId(null);
+
+            if (input.flow === "output") {
+              setPendingConnection({
+                nodeId: input.nodeId,
+                portId: input.portId
+              });
+              return;
+            }
+
+            if (!pendingConnection) {
+              return;
+            }
+
+            plannerState.commands.connectPorts({
+              sourceNodeId: pendingConnection.nodeId,
+              sourcePortId: pendingConnection.portId,
+              targetNodeId: input.nodeId,
+              targetPortId: input.portId
+            });
+            setPendingConnection(null);
+          }}
           onSelectNode={(nodeId) => plannerState.commands.selectNode(nodeId)}
+          pendingPortKey={
+            pendingConnection ? `${pendingConnection.nodeId}:${pendingConnection.portId}` : null
+          }
+          portDefinitionsByNodeId={portDefinitionsByNodeId}
           selectedNodeId={plannerState.selection.selectedNodeId}
         />
         {ghostCandidate ? (

@@ -30,6 +30,20 @@ export type PlacementFailure = {
   conflictingNodeIds?: string[];
 };
 
+export type PlanMutationFailureCode =
+  | "unknown-node"
+  | "unknown-edge"
+  | "unknown-resource";
+
+export type PlanMutationFailure = {
+  code: PlanMutationFailureCode;
+  message: string;
+};
+
+export type PlanMutationResult =
+  | { ok: true; plan: PlanDocument }
+  | { ok: false; reason: PlanMutationFailure };
+
 export type PlacementResult =
   | { ok: true; plan: PlanDocument; node: PlanNode }
   | { ok: false; reason: PlacementFailure };
@@ -57,6 +71,23 @@ function clonePlan(plan: PlanDocument): PlanDocument {
     },
     nodes: { ...plan.nodes },
     edges: { ...plan.edges }
+  };
+}
+
+function cloneResult(plan: PlanDocument): PlanMutationResult {
+  return {
+    ok: true,
+    plan
+  };
+}
+
+function failMutation(code: PlanMutationFailureCode, message: string): PlanMutationResult {
+  return {
+    ok: false,
+    reason: {
+      code,
+      message
+    }
   };
 }
 
@@ -202,4 +233,100 @@ export function removeNode(plan: PlanDocument, nodeId: string): PlanDocument {
 
   nextPlan.metadata.updatedAt = new Date().toISOString();
   return nextPlan;
+}
+
+export type ConnectPortsInput = {
+  edgeId?: string;
+  sourceNodeId: string;
+  sourcePortId: string;
+  targetNodeId: string;
+  targetPortId: string;
+};
+
+export function createEdgeId(input: ConnectPortsInput) {
+  return `edge-${input.sourceNodeId}-${input.sourcePortId}-${input.targetNodeId}-${input.targetPortId}`;
+}
+
+export function connectPorts(
+  plan: PlanDocument,
+  input: ConnectPortsInput
+): PlanMutationResult {
+  if (!plan.nodes[input.sourceNodeId]) {
+    return failMutation(
+      "unknown-node",
+      `Unknown source node "${input.sourceNodeId}" for connection`
+    );
+  }
+
+  if (!plan.nodes[input.targetNodeId]) {
+    return failMutation(
+      "unknown-node",
+      `Unknown target node "${input.targetNodeId}" for connection`
+    );
+  }
+
+  const nextPlan = clonePlan(plan);
+  const edgeId = input.edgeId ?? createEdgeId(input);
+  nextPlan.edges[edgeId] = {
+    id: edgeId,
+    sourceNodeId: input.sourceNodeId,
+    sourcePortId: input.sourcePortId,
+    targetNodeId: input.targetNodeId,
+    targetPortId: input.targetPortId
+  };
+  nextPlan.metadata.updatedAt = new Date().toISOString();
+
+  return cloneResult(nextPlan);
+}
+
+export function disconnectEdge(
+  plan: PlanDocument,
+  edgeId: string
+): PlanMutationResult {
+  if (!plan.edges[edgeId]) {
+    return failMutation("unknown-edge", `Unknown edge "${edgeId}"`);
+  }
+
+  const nextPlan = clonePlan(plan);
+  delete nextPlan.edges[edgeId];
+  nextPlan.metadata.updatedAt = new Date().toISOString();
+
+  return cloneResult(nextPlan);
+}
+
+export function setNodeMode(
+  plan: PlanDocument,
+  nodeId: string,
+  modeId: string | undefined
+): PlanMutationResult {
+  const node = plan.nodes[nodeId];
+  if (!node) {
+    return failMutation("unknown-node", `Unknown node "${nodeId}"`);
+  }
+
+  const nextPlan = clonePlan(plan);
+  nextPlan.nodes[nodeId] = {
+    ...node,
+    modeId
+  };
+  nextPlan.metadata.updatedAt = new Date().toISOString();
+
+  return cloneResult(nextPlan);
+}
+
+export function setExternalInputCap(
+  plan: PlanDocument,
+  resourceId: string,
+  cap: number | null
+): PlanMutationResult {
+  const nextPlan = clonePlan(plan);
+
+  if (cap === null) {
+    delete nextPlan.siteConfig.externalInputCaps[resourceId];
+  } else {
+    nextPlan.siteConfig.externalInputCaps[resourceId] = cap;
+  }
+
+  nextPlan.metadata.updatedAt = new Date().toISOString();
+  return cloneResult(nextPlan);
 }

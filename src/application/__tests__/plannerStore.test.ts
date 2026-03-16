@@ -168,4 +168,125 @@ describe("planner store", () => {
     const diagnosticContext = selectReferenceContext(store.getState());
     expect(diagnosticContext?.nodeId).toBe("node-smelter");
   });
+
+  it("connects nodes, updates machine modes, applies external caps, and disconnects edges", () => {
+    const store = createPlannerStore({ dataset, storage: createMemoryStorage() });
+    const commands = store.getState().commands as unknown as {
+      connectPorts: (input: {
+        edgeId: string;
+        sourceNodeId: string;
+        sourcePortId: string;
+        targetNodeId: string;
+        targetPortId: string;
+      }) => void;
+      disconnectEdge: (edgeId: string) => void;
+      setNodeMode: (input: { nodeId: string; modeId: string }) => void;
+      setExternalInputCap: (input: { resourceId: string; cap: number | null }) => void;
+    };
+
+    store.getState().commands.createProject({ sitePresetId: "site.training-yard" });
+    store.getState().commands.placeNode({
+      nodeId: "node-intake",
+      catalogId: "terminal.ore-intake",
+      position: { x: 0, y: 4 }
+    });
+    store.getState().commands.placeNode({
+      nodeId: "node-smelter",
+      catalogId: "machine.basic-smelter",
+      position: { x: 2, y: 4 }
+    });
+    store.getState().commands.placeNode({
+      nodeId: "node-output",
+      catalogId: "terminal.ingot-output",
+      position: { x: 5, y: 4 }
+    });
+
+    commands.connectPorts({
+      edgeId: "edge-ore-feed",
+      sourceNodeId: "node-intake",
+      sourcePortId: "ore-out",
+      targetNodeId: "node-smelter",
+      targetPortId: "ore-in"
+    });
+    commands.connectPorts({
+      edgeId: "edge-ingot-feed",
+      sourceNodeId: "node-smelter",
+      sourcePortId: "ingot-out",
+      targetNodeId: "node-output",
+      targetPortId: "ingot-in"
+    });
+
+    expect(store.getState().plan?.edges["edge-ore-feed"]).toBeDefined();
+    expect(store.getState().analysis?.nodeRates["node-smelter"]).toBe(15);
+
+    commands.setNodeMode({
+      nodeId: "node-smelter",
+      modeId: "mode.basic-smelter.efficient"
+    });
+    expect(store.getState().analysis?.nodeRates["node-smelter"]).toBe(11.25);
+
+    commands.setExternalInputCap({
+      resourceId: "resource.iron-ore",
+      cap: 10
+    });
+    expect(store.getState().plan?.siteConfig.externalInputCaps["resource.iron-ore"]).toBe(10);
+    expect(store.getState().analysis?.bottlenecks).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "bottleneck.external-cap",
+          nodeId: "node-smelter",
+          resourceId: "resource.iron-ore"
+        })
+      ])
+    );
+
+    commands.disconnectEdge("edge-ingot-feed");
+    expect(store.getState().plan?.edges["edge-ingot-feed"]).toBeUndefined();
+    expect(store.getState().diagnostics.map((diagnostic) => diagnostic.code)).toContain(
+      "connection.disconnected-output"
+    );
+  });
+
+  it("restores an earlier recent project from persisted storage", () => {
+    vi.useFakeTimers();
+    let tick = 0;
+    const storage = createMemoryStorage();
+    const store = createPlannerStore({
+      dataset,
+      storage,
+      autosaveDelayMs: 10,
+      now: () => `2026-03-15T00:00:${String(tick++).padStart(2, "0")}.000Z`
+    });
+    const commands = store.getState().commands as unknown as {
+      reopenRecentProject: (storageKey: string) => void;
+    };
+
+    store.getState().commands.createProject({
+      sitePresetId: "site.training-yard",
+      name: "Alpha Yard"
+    });
+    store.getState().commands.placeNode({
+      nodeId: "node-alpha",
+      catalogId: "machine.basic-smelter",
+      position: { x: 2, y: 4 }
+    });
+    vi.advanceTimersByTime(10);
+
+    store.getState().commands.createProject({
+      sitePresetId: "site.training-yard",
+      name: "Beta Yard"
+    });
+    vi.advanceTimersByTime(10);
+
+    const alphaProject = store
+      .getState()
+      .recentProjects.find((project) => project.name === "Alpha Yard");
+
+    expect(alphaProject).toBeDefined();
+
+    commands.reopenRecentProject(alphaProject!.storageKey);
+
+    expect(store.getState().plan?.metadata.name).toBe("Alpha Yard");
+    expect(store.getState().plan?.nodes["node-alpha"]).toBeDefined();
+  });
 });

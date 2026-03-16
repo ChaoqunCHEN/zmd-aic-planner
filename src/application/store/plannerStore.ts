@@ -10,13 +10,15 @@ import {
   type StorageLike
 } from "../autosave/autosaveController";
 import { createPlannerCommands, type PlannerCommands } from "../commands/plannerCommands";
-import { saveProjectToStorage } from "../project/projectIO";
+import {
+  loadRecentProjects,
+  RECENT_PROJECTS_STORAGE_KEY,
+  saveProjectToStorage,
+  saveRecentProjects,
+  type RecentProjectRecord
+} from "../project/projectIO";
 
-export type RecentProject = {
-  storageKey: string;
-  name: string;
-  updatedAt: string;
-};
+export type RecentProject = RecentProjectRecord;
 
 export type SelectionState = {
   selectedNodeId: string | null;
@@ -63,13 +65,16 @@ export type PlannerStoreOptions = {
   storage?: StorageLike;
   autosaveDelayMs?: number;
   storageKey?: string;
+  recentProjectsKey?: string;
   now?: () => string;
 };
 
 export type PlannerStoreServices = {
   autosaveController: AutosaveController;
   now: () => string;
-  storageKey: string;
+  baseStorageKey: string;
+  storage: StorageLike;
+  recentProjectsKey: string;
 };
 
 export function recomputeDerivedState(plan: PlanDocument | null, dataset: DatasetBundle) {
@@ -101,18 +106,26 @@ export function persistPlan(
   services: PlannerStoreServices,
   plan: PlanDocument
 ) {
-  store.setState((state) => ({
-    autosave: {
-      ...state.autosave,
-      state: "pending"
-    },
-    recentProjects: buildRecentProjects(
+  const storageKey = store.getState().autosave.storageKey;
+
+  store.setState((state) => {
+    const recentProjects = buildRecentProjects(
       state.recentProjects,
-      services.storageKey,
+      storageKey,
       plan.metadata.name,
       plan.metadata.updatedAt
-    )
-  }));
+    );
+
+    saveRecentProjects(services.storage, services.recentProjectsKey, recentProjects);
+
+    return {
+      autosave: {
+        ...state.autosave,
+        state: "pending"
+      },
+      recentProjects
+    };
+  });
 
   services.autosaveController.schedule(plan.metadata.updatedAt);
 }
@@ -128,6 +141,8 @@ export function createPlannerStore(options: PlannerStoreOptions): PlannerStore {
       },
       setItem() {}
     } satisfies StorageLike);
+  const recentProjectsKey = options.recentProjectsKey ?? RECENT_PROJECTS_STORAGE_KEY;
+  const initialRecentProjects = loadRecentProjects(storage, recentProjectsKey);
 
   const storeRef: { current: PlannerStore | null } = { current: null };
 
@@ -147,6 +162,7 @@ export function createPlannerStore(options: PlannerStoreOptions): PlannerStore {
 
       void marker;
       saveProjectToStorage(storage, storageKey, state.plan);
+      saveProjectToStorage(storage, state.autosave.storageKey, state.plan);
       store.setState((current) => ({
         autosave: {
           ...current.autosave,
@@ -160,7 +176,9 @@ export function createPlannerStore(options: PlannerStoreOptions): PlannerStore {
   const services: PlannerStoreServices = {
     autosaveController,
     now,
-    storageKey
+    baseStorageKey: storageKey,
+    storage,
+    recentProjectsKey
   };
 
   const store = createStore<PlannerState>(() => {
@@ -175,7 +193,7 @@ export function createPlannerStore(options: PlannerStoreOptions): PlannerStore {
         selectedNodeId: null,
         selectedDiagnosticId: null
       },
-      recentProjects: [],
+      recentProjects: initialRecentProjects,
       history: {
         past: [],
         future: []

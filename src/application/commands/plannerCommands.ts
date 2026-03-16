@@ -1,7 +1,22 @@
 import { createPlan } from "../../domain/plan/document";
-import { moveNode, placeNode, removeNode } from "../../domain/plan/operations";
-import { exportProject, importProject } from "../project/projectIO";
 import {
+  connectPorts,
+  createEdgeId,
+  disconnectEdge,
+  moveNode,
+  placeNode,
+  removeNode,
+  setExternalInputCap,
+  setNodeMode
+} from "../../domain/plan/operations";
+import {
+  createProjectStorageKey,
+  exportProject,
+  importProject,
+  loadProjectFromStorage
+} from "../project/projectIO";
+import {
+  persistPlan,
   recomputeDerivedState,
   type PlannerStore,
   type PlannerStoreServices,
@@ -13,12 +28,23 @@ export type PlannerCommands = {
   placeNode(input: { nodeId: string; catalogId: string; position: { x: number; y: number }; rotation?: 0 | 90 | 180 | 270 }): void;
   moveNode(input: { nodeId: string; position: { x: number; y: number }; rotation?: 0 | 90 | 180 | 270 }): void;
   removeNode(nodeId: string): void;
+  connectPorts(input: {
+    edgeId?: string;
+    sourceNodeId: string;
+    sourcePortId: string;
+    targetNodeId: string;
+    targetPortId: string;
+  }): void;
+  disconnectEdge(edgeId: string): void;
+  setNodeMode(input: { nodeId: string; modeId: string | undefined }): void;
+  setExternalInputCap(input: { resourceId: string; cap: number | null }): void;
   selectNode(nodeId: string | null): void;
   selectDiagnostic(diagnosticId: string | null): void;
   undo(): void;
   redo(): void;
   importProject(serialized: string): void;
   exportProject(): string | null;
+  reopenRecentProject(storageKey: string): void;
 };
 
 export function createPlannerCommands(
@@ -33,6 +59,7 @@ export function createPlannerCommands(
         projectName: input.name,
         now: services.now()
       });
+      const projectStorageKey = createProjectStorageKey(plan);
 
       const derived = recomputeDerivedState(plan, state.dataset);
 
@@ -53,13 +80,18 @@ export function createPlannerCommands(
           lastCommand: "createProject",
           lastError: null
         },
+        autosave: {
+          ...state.autosave,
+          state: "pending",
+          storageKey: projectStorageKey
+        },
         importStatus: {
           warnings: [],
           errors: []
         }
       });
 
-      services.autosaveController.schedule(JSON.stringify(plan));
+      persistPlan(store, services, plan);
     },
 
     placeNode(input) {
@@ -116,6 +148,109 @@ export function createPlannerCommands(
       updatePlanState(store, services, nextPlan, "removeNode", null);
     },
 
+    connectPorts(input) {
+      const state = store.getState();
+      if (!state.plan) {
+        return;
+      }
+
+      const result = connectPorts(state.plan, {
+        ...input,
+        edgeId: input.edgeId ?? createEdgeId(input)
+      });
+
+      if (!result.ok) {
+        store.setState({
+          ...state,
+          status: {
+            lastCommand: "connectPorts",
+            lastError: result.reason.message
+          }
+        });
+        return;
+      }
+
+      updatePlanState(store, services, result.plan, "connectPorts", state.selection.selectedNodeId);
+    },
+
+    disconnectEdge(edgeId) {
+      const state = store.getState();
+      if (!state.plan) {
+        return;
+      }
+
+      const result = disconnectEdge(state.plan, edgeId);
+
+      if (!result.ok) {
+        store.setState({
+          ...state,
+          status: {
+            lastCommand: "disconnectEdge",
+            lastError: result.reason.message
+          }
+        });
+        return;
+      }
+
+      updatePlanState(
+        store,
+        services,
+        result.plan,
+        "disconnectEdge",
+        state.selection.selectedNodeId
+      );
+    },
+
+    setNodeMode(input) {
+      const state = store.getState();
+      if (!state.plan) {
+        return;
+      }
+
+      const result = setNodeMode(state.plan, input.nodeId, input.modeId);
+
+      if (!result.ok) {
+        store.setState({
+          ...state,
+          status: {
+            lastCommand: "setNodeMode",
+            lastError: result.reason.message
+          }
+        });
+        return;
+      }
+
+      updatePlanState(store, services, result.plan, "setNodeMode", input.nodeId);
+    },
+
+    setExternalInputCap(input) {
+      const state = store.getState();
+      if (!state.plan) {
+        return;
+      }
+
+      const result = setExternalInputCap(state.plan, input.resourceId, input.cap);
+
+      if (!result.ok) {
+        store.setState({
+          ...state,
+          status: {
+            lastCommand: "setExternalInputCap",
+            lastError: result.reason.message
+          }
+        });
+        return;
+      }
+
+      updatePlanState(
+        store,
+        services,
+        result.plan,
+        "setExternalInputCap",
+        state.selection.selectedNodeId
+      );
+    },
+
     selectNode(nodeId) {
       store.setState((state) => ({
         ...state,
@@ -165,7 +300,7 @@ export function createPlannerCommands(
         }
       });
 
-      services.autosaveController.schedule(JSON.stringify(previous));
+      persistPlan(store, services, previous);
     },
 
     redo() {
@@ -197,7 +332,7 @@ export function createPlannerCommands(
         }
       });
 
-      services.autosaveController.schedule(JSON.stringify(next));
+      persistPlan(store, services, next);
     },
 
     importProject(serialized) {
@@ -220,6 +355,7 @@ export function createPlannerCommands(
       }
 
       const derived = recomputeDerivedState(result.plan, state.dataset);
+      const projectStorageKey = createProjectStorageKey(result.plan);
 
       store.setState({
         ...state,
@@ -238,18 +374,74 @@ export function createPlannerCommands(
           warnings: result.warnings,
           errors: result.errors
         },
+        autosave: {
+          ...state.autosave,
+          state: "pending",
+          storageKey: projectStorageKey
+        },
         status: {
           lastCommand: "importProject",
           lastError: null
         }
       });
 
-      services.autosaveController.schedule(JSON.stringify(result.plan));
+      persistPlan(store, services, result.plan);
     },
 
     exportProject() {
       const state = store.getState();
       return state.plan ? exportProject(state.plan) : null;
+    },
+
+    reopenRecentProject(storageKey) {
+      const state = store.getState();
+      const result = loadProjectFromStorage(services.storage, storageKey, state.dataset);
+
+      if (!result.plan) {
+        store.setState({
+          ...state,
+          importStatus: {
+            warnings: result.warnings,
+            errors: result.errors
+          },
+          status: {
+            lastCommand: "reopenRecentProject",
+            lastError: result.errors[0]?.message ?? null
+          }
+        });
+        return;
+      }
+
+      const derived = recomputeDerivedState(result.plan, state.dataset);
+      store.setState({
+        ...state,
+        plan: result.plan,
+        diagnostics: derived.diagnostics,
+        analysis: derived.analysis,
+        selection: {
+          selectedNodeId: null,
+          selectedDiagnosticId: null
+        },
+        history: {
+          past: [],
+          future: []
+        },
+        autosave: {
+          ...state.autosave,
+          state: "pending",
+          storageKey
+        },
+        importStatus: {
+          warnings: result.warnings,
+          errors: result.errors
+        },
+        status: {
+          lastCommand: "reopenRecentProject",
+          lastError: null
+        }
+      });
+
+      persistPlan(store, services, result.plan);
     }
   };
 }

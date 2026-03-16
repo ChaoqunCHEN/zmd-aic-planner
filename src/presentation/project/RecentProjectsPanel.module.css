@@ -1,0 +1,44 @@
+.panel {
+  padding: 16px;
+  border: 1px solid var(--border-soft);
+  border-radius: 18px;
+  background: var(--bg-panel);
+  box-shadow: var(--shadow-panel);
+}
+
+.heading {
+  margin: 0 0 12px;
+  font-size: 1rem;
+}
+
+.list {
+  display: grid;
+  gap: 10px;
+}
+
+.empty {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.projectButton {
+  display: grid;
+  gap: 4px;
+  justify-items: start;
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text-primary);
+  padding: 12px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.projectButton[data-active="true"] {
+  border-color: var(--border-strong);
+}
+
+.meta {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}

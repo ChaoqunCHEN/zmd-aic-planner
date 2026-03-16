@@ -1,0 +1,39 @@
+.panel {
+  padding: 16px;
+  border: 1px solid var(--border-soft);
+  border-radius: 18px;
+  background: var(--bg-panel);
+  box-shadow: var(--shadow-panel);
+}
+
+.heading {
+  margin: 0 0 12px;
+  font-size: 1rem;
+}
+
+.list {
+  display: grid;
+  gap: 12px;
+}
+
+.field {
+  display: grid;
+  gap: 4px;
+}
+
+.name {
+  font-weight: 600;
+}
+
+.meta {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.input {
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  background: rgba(18, 35, 46, 0.9);
+  color: var(--text-primary);
+  padding: 10px 12px;
+}

@@ -15,10 +15,10 @@
   - [x] Task 5: Planner store, commands, undo/redo, and autosave
   - [x] Task 6: Workbench shell and supporting panels
   - [x] Task 7: Grid workspace, selection, and placement editing
-  - [ ] Task 8: Connection editing, node configuration, and project flows
+  - [x] Task 8: Connection editing, node configuration, and project flows
   - [ ] Task 9: Curated MVP data and encyclopedia quality
   - [ ] Task 10: End-to-end acceptance, performance sanity, and finish
-- Current focus: Task 8 connection editing and project flows
+- Current focus: Task 9 curated MVP data and encyclopedia quality
 
 **Goal:** Build the browser-first Arknights: Endfield AIC Planner MVP in this repo, using curated seed data, local-first persistence, diagnostics, and a desktop-focused grid editor.
 

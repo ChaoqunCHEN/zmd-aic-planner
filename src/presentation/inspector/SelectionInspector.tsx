@@ -17,12 +17,16 @@ type SelectionInspectorProps = {
   selectedNode: PlanNode | null;
   referenceContext: ReferenceContext | null;
   diagnostics: Diagnostic[];
+  modeOptions?: MachineMode[];
+  onModeChange?: (modeId: string) => void;
 };
 
 export function SelectionInspector({
   selectedNode,
   referenceContext,
-  diagnostics
+  diagnostics,
+  modeOptions = [],
+  onModeChange
 }: SelectionInspectorProps) {
   return (
     <section className={styles.panel} data-testid="selection-inspector">
@@ -43,6 +47,23 @@ export function SelectionInspector({
           <p className={styles.meta}>
             Active mode: {referenceContext.mode?.name ?? "Not selected"}
           </p>
+          {modeOptions.length > 0 ? (
+            <label className={styles.field}>
+              <span className={styles.fieldLabel}>Operating mode</span>
+              <select
+                className={styles.select}
+                data-testid="node-mode-select"
+                onChange={(event) => onModeChange?.(event.target.value)}
+                value={selectedNode.modeId ?? ""}
+              >
+                {modeOptions.map((mode) => (
+                  <option key={mode.id} value={mode.id}>
+                    {mode.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
           <p className={styles.meta}>
             Primary recipe: {referenceContext.recipe?.name ?? "No recipe data"}
           </p>

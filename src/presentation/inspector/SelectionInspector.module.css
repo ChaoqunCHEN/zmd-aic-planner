@@ -22,6 +22,26 @@
   gap: 10px;
 }
 
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.fieldLabel {
+  color: var(--text-accent);
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.select {
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  background: rgba(18, 35, 46, 0.9);
+  color: var(--text-primary);
+  padding: 10px 12px;
+}
+
 .name {
   margin: 0;
   font-size: 1.1rem;

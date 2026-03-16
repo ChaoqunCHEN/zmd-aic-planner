@@ -71,4 +71,33 @@ describe("PlannerWorkspace", () => {
     await user.keyboard("{Delete}");
     expect(store.getState().plan?.nodes[movedNodeId]).toBeUndefined();
   });
+
+  it("authors and removes connections through node ports", async () => {
+    const user = userEvent.setup();
+    const store = setupWorkspace();
+
+    store.getState().commands.placeNode({
+      nodeId: "node-intake",
+      catalogId: "terminal.ore-intake",
+      position: { x: 0, y: 4 }
+    });
+    store.getState().commands.placeNode({
+      nodeId: "node-smelter",
+      catalogId: "machine.basic-smelter",
+      position: { x: 2, y: 4 }
+    });
+
+    render(<PlannerWorkspace store={store} />);
+
+    await user.click(screen.getByTestId("port:node-intake:ore-out"));
+    await user.click(screen.getByTestId("port:node-smelter:ore-in"));
+
+    const edge = screen.getByTestId("plan-edge:edge-node-intake-ore-out-node-smelter-ore-in");
+    expect(edge).toBeVisible();
+
+    await user.click(edge);
+    expect(
+      screen.queryByTestId("plan-edge:edge-node-intake-ore-out-node-smelter-ore-in")
+    ).not.toBeInTheDocument();
+  });
 });

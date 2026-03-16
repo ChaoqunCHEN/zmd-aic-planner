@@ -11,6 +11,18 @@ import {
 } from "../../domain/codecs/projectFileCodec";
 import type { StorageLike } from "../autosave/autosaveController";
 
+export type RecentProjectRecord = {
+  storageKey: string;
+  name: string;
+  updatedAt: string;
+};
+
+export const RECENT_PROJECTS_STORAGE_KEY = "aic-planner.recent-projects";
+
+export function createProjectStorageKey(plan: Pick<PlanDocument, "metadata">) {
+  return `aic-planner.project:${encodeURIComponent(plan.metadata.createdAt)}`;
+}
+
 export function exportProject(plan: PlanDocument) {
   return encodeProjectFile(plan);
 }
@@ -48,4 +60,42 @@ export function loadProjectFromStorage(
   }
 
   return decodeBrowserStorage(serialized, dataset);
+}
+
+export function saveRecentProjects(
+  storage: StorageLike,
+  storageKey: string,
+  projects: RecentProjectRecord[]
+) {
+  storage.setItem(storageKey, JSON.stringify(projects));
+}
+
+export function loadRecentProjects(
+  storage: StorageLike,
+  storageKey: string
+): RecentProjectRecord[] {
+  const serialized = storage.getItem(storageKey);
+
+  if (!serialized) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(serialized) as unknown;
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    return parsed.filter((entry): entry is RecentProjectRecord => {
+      return (
+        typeof entry === "object" &&
+        entry !== null &&
+        typeof (entry as RecentProjectRecord).storageKey === "string" &&
+        typeof (entry as RecentProjectRecord).name === "string" &&
+        typeof (entry as RecentProjectRecord).updatedAt === "string"
+      );
+    });
+  } catch {
+    return [];
+  }
 }

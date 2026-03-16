@@ -1,0 +1,61 @@
+.scrim {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(6, 11, 15, 0.52);
+  z-index: 20;
+}
+
+.dialog {
+  width: min(420px, calc(100vw - 32px));
+  display: grid;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid var(--border-soft);
+  border-radius: 20px;
+  background: var(--bg-panel);
+  box-shadow: var(--shadow-panel);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.heading {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.closeButton,
+.submitButton {
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-primary);
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.label {
+  color: var(--text-accent);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.input {
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  background: rgba(18, 35, 46, 0.9);
+  color: var(--text-primary);
+  padding: 10px 12px;
+}

@@ -99,6 +99,16 @@ export function createPlan(dataset: DatasetBundle, options: CreatePlanOptions): 
     throw new Error(`Unknown site preset "${options.sitePresetId}"`);
   }
 
+  const externalInputCaps = Object.fromEntries(
+    Object.values(dataset.ruleFragments)
+      .filter(
+        (fragment) =>
+          fragment.ruleType === "external-input-cap" &&
+          fragment.sitePresetIds.includes(options.sitePresetId)
+      )
+      .map((fragment) => [fragment.resourceId, fragment.defaultCap])
+  );
+
   return {
     formatVersion: PLAN_FORMAT_VERSION,
     datasetVersion: dataset.version,
@@ -109,7 +119,7 @@ export function createPlan(dataset: DatasetBundle, options: CreatePlanOptions): 
     },
     siteConfig: {
       sitePresetId: options.sitePresetId,
-      externalInputCaps: {}
+      externalInputCaps
     },
     nodes: {},
     edges: {}
