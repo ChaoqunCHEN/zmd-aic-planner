@@ -10,16 +10,39 @@
 }
 
 .controls {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
   gap: 16px;
-  flex-wrap: wrap;
 }
 
 .catalog {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
   gap: 10px;
+}
+
+.catalogCategory {
+  display: grid;
+  gap: 8px;
+}
+
+.categoryToggle {
+  width: fit-content;
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-primary);
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.categoryToggle[aria-expanded="true"] {
+  border-color: var(--border-strong);
+}
+
+.catalogRail {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
 }
 
 .catalogButton,
@@ -32,14 +55,66 @@
   cursor: pointer;
 }
 
+.catalogButton {
+  min-width: 92px;
+  max-width: 120px;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  text-align: center;
+  font-size: 0.74rem;
+}
+
+.catalogButton:disabled {
+  cursor: not-allowed;
+}
+
 .catalogButton[data-active="true"],
 .actionButton {
   border-color: var(--border-strong);
 }
 
+.catalogButton[data-disabled="true"] {
+  opacity: 0.55;
+}
+
+.catalogIconWrap {
+  width: 32px;
+  aspect-ratio: 1 / 1;
+  display: grid;
+  place-items: center;
+}
+
+.catalogIcon {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.catalogFallbackIcon {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  background: rgba(143, 213, 255, 0.18);
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.catalogLabel {
+  line-height: 1.2;
+}
+
+.catalogItemState {
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+}
+
 .selectionActions {
   display: flex;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .canvas {

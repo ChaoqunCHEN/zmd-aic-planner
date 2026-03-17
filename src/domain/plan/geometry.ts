@@ -1,4 +1,4 @@
-import type { SitePreset } from "../types";
+import type { PortDefinition, PortSide, SitePreset } from "../types";
 import type { GridPoint, GridSize, PlanNode, Rotation } from "./document";
 
 export type GridRect = {
@@ -86,4 +86,95 @@ export function findBlockedZoneOverlap(rect: GridRect, sitePreset: SitePreset): 
 
 export function pointKey(point: GridPoint): string {
   return `${point.x}:${point.y}`;
+}
+
+export function getNodeOccupiedCells(
+  node: Pick<PlanNode, "position" | "footprint" | "rotation">
+): GridPoint[] {
+  const rect = getNodeRect(node);
+  const occupied: GridPoint[] = [];
+
+  for (let x = rect.x; x < rect.x + rect.width; x += 1) {
+    for (let y = rect.y; y < rect.y + rect.height; y += 1) {
+      occupied.push({ x, y });
+    }
+  }
+
+  return occupied;
+}
+
+const CARDINAL_SIDES: readonly PortSide[] = ["north", "east", "south", "west", "center"];
+
+export function rotatePortSide(side: PortSide, rotation: Rotation): PortSide {
+  if (side === "center") {
+    return "center";
+  }
+
+  const index = CARDINAL_SIDES.indexOf(side);
+  const clockwiseSteps = rotation / 90;
+
+  if (index < 0 || index > 3) {
+    return side;
+  }
+
+  return CARDINAL_SIDES[(index + clockwiseSteps) % 4]!;
+}
+
+export function getNodePortSide(
+  node: Pick<PlanNode, "rotation">,
+  port: Pick<PortDefinition, "side">
+): PortSide {
+  return rotatePortSide(port.side, node.rotation);
+}
+
+type TouchingSides = {
+  sourceSide: PortSide;
+  targetSide: PortSide;
+};
+
+function spansOverlap(aStart: number, aEnd: number, bStart: number, bEnd: number) {
+  return Math.min(aEnd, bEnd) - Math.max(aStart, bStart) > 0;
+}
+
+export function getTouchingSides(
+  source: Pick<PlanNode, "position" | "footprint" | "rotation">,
+  target: Pick<PlanNode, "position" | "footprint" | "rotation">
+): TouchingSides | null {
+  const sourceRect = getNodeRect(source);
+  const targetRect = getNodeRect(target);
+
+  const sourceBottom = sourceRect.y + sourceRect.height;
+  const targetBottom = targetRect.y + targetRect.height;
+  const sourceRight = sourceRect.x + sourceRect.width;
+  const targetRight = targetRect.x + targetRect.width;
+
+  if (
+    sourceRight === targetRect.x &&
+    spansOverlap(sourceRect.y, sourceBottom, targetRect.y, targetBottom)
+  ) {
+    return { sourceSide: "east", targetSide: "west" };
+  }
+
+  if (
+    targetRight === sourceRect.x &&
+    spansOverlap(sourceRect.y, sourceBottom, targetRect.y, targetBottom)
+  ) {
+    return { sourceSide: "west", targetSide: "east" };
+  }
+
+  if (
+    sourceBottom === targetRect.y &&
+    spansOverlap(sourceRect.x, sourceRight, targetRect.x, targetRight)
+  ) {
+    return { sourceSide: "south", targetSide: "north" };
+  }
+
+  if (
+    targetBottom === sourceRect.y &&
+    spansOverlap(sourceRect.x, sourceRight, targetRect.x, targetRight)
+  ) {
+    return { sourceSide: "north", targetSide: "south" };
+  }
+
+  return null;
 }

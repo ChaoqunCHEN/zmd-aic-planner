@@ -23,6 +23,19 @@ export type AssetRef = {
   alt?: string;
 };
 
+export type PlannerCategory = "machines" | "logistics" | "storage" | "utilities";
+export type AvailabilityStatus = "validated" | "reference-only";
+export type PlacementKind = "area" | "linear";
+export type PlaceableSubtype =
+  | "machine"
+  | "terminal"
+  | "storage"
+  | "belt"
+  | "pipe"
+  | "logistics-building";
+export type PortSide = "north" | "east" | "south" | "west" | "center";
+export type PortMediumKind = "item" | "fluid" | "logistics";
+
 export type CatalogEntity = {
   id: string;
   kind: string;
@@ -40,6 +53,10 @@ export type PortDefinition = {
   id: string;
   flow: "input" | "output";
   resourceIds: string[];
+  side: PortSide;
+  offset: number;
+  mediumKind: PortMediumKind;
+  maxLinks: number;
 };
 
 export type Footprint = {
@@ -50,8 +67,13 @@ export type Footprint = {
 export type PlaceableItem = CatalogEntity & {
   kind: "placeable";
   worldCategory: "placeable";
-  placeableClass: "area";
-  subtype: "machine" | "terminal";
+  plannerCategory: PlannerCategory;
+  sourceCategoryLabel?: string;
+  sourceSubCategoryLabel?: string;
+  availabilityStatus: AvailabilityStatus;
+  placementKind: PlacementKind;
+  placeableClass?: PlacementKind;
+  subtype: PlaceableSubtype;
   footprint: Footprint;
   ports: PortDefinition[];
   recipeIds?: string[];

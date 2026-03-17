@@ -42,14 +42,14 @@ describe("App task 8 flows", () => {
 
     await screen.findByTestId("planner-workspace");
     await user.type(screen.getByTestId("reference-search-input"), "Survey Annex");
-    expect(screen.getByText("Survey Annex")).toBeVisible();
+    expect(screen.getByText("测绘附属区")).toBeVisible();
 
     await user.clear(screen.getByTestId("reference-search-input"));
     await user.type(
       screen.getByTestId("reference-search-input"),
       "Survey Annex Iron Ore Intake Cap"
     );
-    expect(screen.getByText("Survey Annex Iron Ore Intake Cap")).toBeVisible();
+    expect(screen.getByText("测绘附属区铁矿输入上限")).toBeVisible();
 
     await user.clear(screen.getByTestId("reference-search-input"));
     await user.click(screen.getByTestId("catalog-item:machine.basic-smelter"));
@@ -62,9 +62,9 @@ describe("App task 8 flows", () => {
     await waitFor(() => {
       const referencePane = screen.getByTestId("reference-pane");
 
-      expect(within(referencePane).getByText("Iron Ore -> Iron Ingot")).toBeVisible();
-      expect(within(referencePane).getByText(/Source confidence: probable/i)).toBeVisible();
-      expect(within(referencePane).getByText(/Throughput multiplier: 0.75x/i)).toBeVisible();
+      expect(within(referencePane).getByText("配方流向：铁矿石 -> 铁锭")).toBeVisible();
+      expect(within(referencePane).getByText(/来源可信度：probable/i)).toBeVisible();
+      expect(within(referencePane).getByText(/产能倍率：0.75x/i)).toBeVisible();
     });
   });
 });

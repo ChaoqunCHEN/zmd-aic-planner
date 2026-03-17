@@ -1,4 +1,10 @@
 import styles from "./GridLayer.module.css";
+import {
+  getCanvasPixelSize,
+  GRID_CELL_GAP,
+  GRID_CELL_SIZE,
+  GRID_PADDING
+} from "./workspaceLayout";
 
 type GridLayerProps = {
   width: number;
@@ -8,10 +14,6 @@ type GridLayerProps = {
   onCellLeave: () => void;
   onCellClick: (x: number, y: number) => void;
 };
-
-export const GRID_CELL_SIZE = 42;
-export const GRID_CELL_GAP = 2;
-export const GRID_PADDING = 12;
 
 export function cellKey(x: number, y: number) {
   return `${x}:${y}`;
@@ -31,7 +33,9 @@ export function GridLayer({
       data-testid="site-grid"
       style={{
         gridTemplateColumns: `repeat(${width}, ${GRID_CELL_SIZE}px)`,
-        width: width * GRID_CELL_SIZE + (width - 1) * GRID_CELL_GAP + GRID_PADDING * 2
+        gap: GRID_CELL_GAP,
+        padding: GRID_PADDING,
+        width: getCanvasPixelSize({ width, height }).width
       }}
     >
       {Array.from({ length: width * height }, (_, index) => {
@@ -47,6 +51,10 @@ export function GridLayer({
             onClick={() => onCellClick(x, y)}
             onMouseEnter={() => onCellHover(x, y)}
             onMouseLeave={onCellLeave}
+            style={{
+              width: GRID_CELL_SIZE,
+              height: GRID_CELL_SIZE
+            }}
             type="button"
           />
         );

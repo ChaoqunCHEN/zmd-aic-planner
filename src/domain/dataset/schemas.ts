@@ -39,7 +39,11 @@ export const catalogEntitySchema = z.object({
 export const portDefinitionSchema = z.object({
   id: z.string().min(1),
   flow: z.enum(["input", "output"]),
-  resourceIds: z.array(z.string().min(1)).min(1)
+  resourceIds: z.array(z.string().min(1)).min(1),
+  side: z.enum(["north", "east", "south", "west", "center"]).default("center"),
+  offset: z.number().nonnegative().default(0),
+  mediumKind: z.enum(["item", "fluid", "logistics"]).default("item"),
+  maxLinks: z.number().int().positive().default(1)
 });
 
 export const footprintSchema = z.object({
@@ -50,8 +54,13 @@ export const footprintSchema = z.object({
 export const placeableItemSchema = catalogEntitySchema.extend({
   kind: z.literal("placeable"),
   worldCategory: z.literal("placeable"),
-  placeableClass: z.literal("area"),
-  subtype: z.enum(["machine", "terminal"]),
+  plannerCategory: z.enum(["machines", "logistics", "storage", "utilities"]).default("machines"),
+  sourceCategoryLabel: z.string().min(1).optional(),
+  sourceSubCategoryLabel: z.string().min(1).optional(),
+  availabilityStatus: z.enum(["validated", "reference-only"]).default("reference-only"),
+  placementKind: z.enum(["area", "linear"]).default("area"),
+  placeableClass: z.enum(["area", "linear"]).optional(),
+  subtype: z.enum(["machine", "terminal", "storage", "belt", "pipe", "logistics-building"]),
   footprint: footprintSchema,
   ports: z.array(portDefinitionSchema),
   recipeIds: z.array(z.string().min(1)).optional(),

@@ -80,6 +80,52 @@ describe("loadDataset", () => {
     );
   });
 
+  it("applies reference-only defaults to incomplete placeable records", () => {
+    const result = loadDataset(bundledDataset);
+
+    expect(result.ok).toBe(true);
+
+    if (!result.ok) {
+      return;
+    }
+
+    const referenceOnly = result.data.placeableItems["machine.skland-10"];
+    expect(referenceOnly.availabilityStatus).toBe("reference-only");
+    expect(referenceOnly.plannerCategory).toBe("machines");
+    expect(referenceOnly.placementKind).toBe("area");
+    expect(referenceOnly.nameZhHans).toBe("物品准入口");
+  });
+
+  it("supports sided ports with medium metadata on placeables", () => {
+    const result = loadDataset(bundledDataset);
+
+    expect(result.ok).toBe(true);
+
+    if (!result.ok) {
+      return;
+    }
+
+    const belt = result.data.placeableItems["belt.basic-conveyor"];
+    expect(belt.subtype).toBe("belt");
+    expect(belt.placementKind).toBe("linear");
+    expect(belt.ports).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          side: "west",
+          offset: 0.5,
+          mediumKind: "item",
+          maxLinks: 1
+        }),
+        expect.objectContaining({
+          side: "east",
+          offset: 0.5,
+          mediumKind: "item",
+          maxLinks: 1
+        })
+      ])
+    );
+  });
+
   it("accepts mirrored asset refs and source refs on catalog entities", () => {
     const enrichedDataset = structuredClone(bundledDataset);
     const target = enrichedDataset.placeableItems[0];

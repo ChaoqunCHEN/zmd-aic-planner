@@ -13,13 +13,36 @@ describe("workbench shell components", () => {
   it("renders the split-pane layout with persistent regions", () => {
     render(
       <AppShell
-        toolbar={<ProjectToolbar onExport={() => {}} onImport={() => {}} onNewProject={() => {}} projectName="Test Project" />}
+        toolbar={
+          <ProjectToolbar
+            onExport={() => {}}
+            onImport={() => {}}
+            onNewProject={() => {}}
+            projectName="Test Project"
+          />
+        }
         workbench={
           <WorkbenchLayout
             workspace={<section data-testid="planner-workspace">Workspace</section>}
-            inspector={<SelectionInspector diagnostics={[]} referenceContext={null} selectedNode={null} />}
-            diagnostics={<DiagnosticsPanel diagnostics={[]} onSelectDiagnostic={() => {}} selectedDiagnosticId={null} />}
-            referencePane={<ReferencePane entries={[]} focusSummary={null} focusTitle={null} onQueryChange={() => {}} query="" />}
+            inspector={
+              <SelectionInspector diagnostics={[]} referenceContext={null} selectedNode={null} />
+            }
+            diagnostics={
+              <DiagnosticsPanel
+                diagnostics={[]}
+                onSelectDiagnostic={() => {}}
+                selectedDiagnosticId={null}
+              />
+            }
+            referencePane={
+              <ReferencePane
+                entries={[]}
+                focusSummary={null}
+                focusTitle={null}
+                onQueryChange={() => {}}
+                query=""
+              />
+            }
           />
         }
       />
@@ -90,8 +113,22 @@ describe("workbench shell components", () => {
       return (
         <ReferencePane
           entries={[
-            { id: "machine", kindLabel: "Machine", name: "Basic Smelter" },
-            { id: "resource", kindLabel: "Resource", name: "Iron Ore" }
+            {
+              id: "machine",
+              iconLabel: "基",
+              kindLabel: "机器",
+              name: "基础冶炼炉",
+              searchText: "基础冶炼炉 basic smelter machine",
+              secondaryName: "Basic Smelter"
+            },
+            {
+              id: "resource",
+              iconLabel: "铁",
+              kindLabel: "资源",
+              name: "铁矿石",
+              searchText: "铁矿石 iron ore resource",
+              secondaryName: "Iron Ore"
+            }
           ]}
           focusSummary={null}
           focusTitle={null}
@@ -104,7 +141,7 @@ describe("workbench shell components", () => {
     render(<ReferenceHarness />);
 
     await user.type(screen.getByTestId("reference-search-input"), "Smelter");
-    expect(screen.getByText("Basic Smelter")).toBeVisible();
+    expect(screen.getByText("基础冶炼炉")).toBeVisible();
   });
 
   it("updates the inspector context when a node is selected", () => {
@@ -127,10 +164,32 @@ describe("workbench shell components", () => {
             nameZhHans: "基础冶炼炉",
             source: { sourceConfidence: "verified", sourceSystem: "curated" },
             worldCategory: "placeable",
+            plannerCategory: "machines",
+            availabilityStatus: "validated",
+            placementKind: "area",
             placeableClass: "area",
             subtype: "machine",
             footprint: { width: 2, height: 2 },
-            ports: [],
+            ports: [
+              {
+                id: "ore-in",
+                flow: "input",
+                resourceIds: ["resource.iron-ore"],
+                side: "west",
+                offset: 0.5,
+                mediumKind: "item",
+                maxLinks: 1
+              },
+              {
+                id: "ingot-out",
+                flow: "output",
+                resourceIds: ["resource.iron-ingot"],
+                side: "east",
+                offset: 0.5,
+                mediumKind: "item",
+                maxLinks: 1
+              }
+            ],
             recipeIds: ["recipe.smelt-iron"],
             supportedModeIds: ["mode.basic-smelter.standard"],
             defaultModeId: "mode.basic-smelter.standard"
@@ -172,8 +231,9 @@ describe("workbench shell components", () => {
       />
     );
 
-    expect(screen.getByText("Basic Smelter")).toBeVisible();
-    expect(screen.getByText(/Standard Output/)).toBeVisible();
-    expect(screen.getByText(/Smelt Iron Ore/)).toBeVisible();
+    expect(screen.getByText("基础冶炼炉")).toBeVisible();
+    expect(screen.getByText(/标准产出/)).toBeVisible();
+    expect(screen.getByText(/冶炼铁矿石/)).toBeVisible();
+    expect(screen.getByTestId("selection-inspector-port-list")).toHaveTextContent("东侧 输出");
   });
 });

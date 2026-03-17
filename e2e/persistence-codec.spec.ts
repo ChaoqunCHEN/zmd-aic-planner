@@ -1,40 +1,55 @@
 import { promises as fs } from "node:fs";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { gotoReadyApp } from "./fixtures/testApp";
-
-async function placeItem(testId: string, cellTestId: string, page: Page) {
-  await page.getByTestId(testId).click();
-  await page.getByTestId(cellTestId).click();
-}
 
 test("restores autosave and preserves import-export round trips", async ({ page, context }) => {
   await gotoReadyApp(page, context);
 
-  await placeItem("catalog-item:terminal.ore-intake", "grid-cell:0:4", page);
-  await placeItem("catalog-item:machine.basic-smelter", "grid-cell:2:4", page);
-  await placeItem("catalog-item:terminal.ingot-output", "grid-cell:5:4", page);
+  await page.getByTestId("import-project-input").setInputFiles("e2e/fixtures/canonical-project.json");
 
-  await page.getByTestId(/port:.*:ore-out/).click();
-  await page.getByTestId(/port:.*:ore-in/).click();
-  await page.getByTestId(/port:.*:ingot-out/).click();
-  await page.getByTestId(/port:.*:ingot-in/).click();
-
-  const smelterNode = page.getByTestId(/plan-node:node-/).nth(1);
+  const smelterNode = page.getByTestId("plan-node:node-smelter");
   await smelterNode.click();
   await page.getByTestId("node-mode-select").selectOption("mode.basic-smelter.efficient");
   await page.getByTestId("input-cap:resource.iron-ore").fill("10");
 
   await expect
     .poll(async () =>
-      page.evaluate(() => window.localStorage.getItem("aic-planner.autosave"))
+      page.evaluate(() => {
+        const serialized = window.localStorage.getItem("aic-planner.autosave");
+        if (!serialized) {
+          return null;
+        }
+
+        const parsed = JSON.parse(serialized) as {
+          payload?: {
+            nodes?: Record<string, { modeId?: string }>;
+            edges?: Record<string, unknown>;
+            siteConfig?: { externalInputCaps?: Record<string, number> };
+          };
+        };
+
+        return {
+          edgeCount: Object.keys(parsed.payload?.edges ?? {}).length,
+          hasEfficientMode: Object.values(parsed.payload?.nodes ?? {}).some(
+            (node) => node.modeId === "mode.basic-smelter.efficient"
+          ),
+          ironOreCap: parsed.payload?.siteConfig?.externalInputCaps?.["resource.iron-ore"] ?? null,
+          nodeCount: Object.keys(parsed.payload?.nodes ?? {}).length
+        };
+      })
     )
-    .not.toBeNull();
+    .toEqual({
+      edgeCount: 2,
+      hasEfficientMode: true,
+      ironOreCap: 10,
+      nodeCount: 3
+    });
 
   await page.reload();
-  await expect(page.getByTestId(/plan-node:node-/)).toHaveCount(3);
-  await expect(page.getByTestId(/plan-edge:edge-/)).toHaveCount(2);
+  await expect(page.getByTestId(/plan-node:/)).toHaveCount(3);
+  await expect(page.getByTestId(/plan-edge:/)).toHaveCount(2);
 
-  const restoredSmelter = page.getByTestId(/plan-node:node-/).nth(1);
+  const restoredSmelter = page.getByTestId("plan-node:node-smelter");
   await restoredSmelter.click();
   await expect(page.getByTestId("node-mode-select")).toHaveValue(
     "mode.basic-smelter.efficient"
@@ -69,7 +84,7 @@ test("restores autosave and preserves import-export round trips", async ({ page,
   await page.getByTestId("new-project-button").click();
   await page.getByTestId("site-preset-select").selectOption("site.survey-annex");
   await page.getByTestId("create-project-submit").click();
-  await expect(page.getByTestId(/plan-node:node-/)).toHaveCount(0);
+  await expect(page.getByTestId(/plan-node:/)).toHaveCount(0);
 
   await page.getByTestId("import-project-input").setInputFiles({
     mimeType: "application/json",
@@ -77,10 +92,10 @@ test("restores autosave and preserves import-export round trips", async ({ page,
     buffer: Buffer.from(exportedText, "utf8")
   });
 
-  await expect(page.getByTestId(/plan-node:node-/)).toHaveCount(3);
-  await expect(page.getByTestId(/plan-edge:edge-/)).toHaveCount(2);
+  await expect(page.getByTestId(/plan-node:/)).toHaveCount(3);
+  await expect(page.getByTestId(/plan-edge:/)).toHaveCount(2);
 
-  const importedSmelter = page.getByTestId(/plan-node:node-/).nth(1);
+  const importedSmelter = page.getByTestId("plan-node:node-smelter");
   await importedSmelter.click();
   await expect(page.getByTestId("node-mode-select")).toHaveValue(
     "mode.basic-smelter.efficient"

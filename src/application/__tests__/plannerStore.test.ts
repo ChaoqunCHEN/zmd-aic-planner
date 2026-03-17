@@ -191,9 +191,19 @@ describe("planner store", () => {
       position: { x: 0, y: 4 }
     });
     store.getState().commands.placeNode({
+      nodeId: "node-ore-belt",
+      catalogId: "belt.basic-conveyor",
+      position: { x: 1, y: 4 }
+    });
+    store.getState().commands.placeNode({
       nodeId: "node-smelter",
       catalogId: "machine.basic-smelter",
       position: { x: 2, y: 4 }
+    });
+    store.getState().commands.placeNode({
+      nodeId: "node-ingot-belt",
+      catalogId: "belt.basic-conveyor",
+      position: { x: 4, y: 4 }
     });
     store.getState().commands.placeNode({
       nodeId: "node-output",
@@ -202,21 +212,36 @@ describe("planner store", () => {
     });
 
     commands.connectPorts({
-      edgeId: "edge-ore-feed",
+      edgeId: "edge-ore-feed-a",
       sourceNodeId: "node-intake",
       sourcePortId: "ore-out",
+      targetNodeId: "node-ore-belt",
+      targetPortId: "belt-in"
+    });
+    commands.connectPorts({
+      edgeId: "edge-ore-feed-b",
+      sourceNodeId: "node-ore-belt",
+      sourcePortId: "belt-out",
       targetNodeId: "node-smelter",
       targetPortId: "ore-in"
     });
     commands.connectPorts({
-      edgeId: "edge-ingot-feed",
+      edgeId: "edge-ingot-feed-a",
       sourceNodeId: "node-smelter",
       sourcePortId: "ingot-out",
+      targetNodeId: "node-ingot-belt",
+      targetPortId: "belt-in"
+    });
+    commands.connectPorts({
+      edgeId: "edge-ingot-feed-b",
+      sourceNodeId: "node-ingot-belt",
+      sourcePortId: "belt-out",
       targetNodeId: "node-output",
       targetPortId: "ingot-in"
     });
 
-    expect(store.getState().plan?.edges["edge-ore-feed"]).toBeDefined();
+    expect(store.getState().plan?.edges["edge-ore-feed-a"]).toBeDefined();
+    expect(store.getState().plan?.edges["edge-ore-feed-b"]).toBeDefined();
     expect(store.getState().analysis?.nodeRates["node-smelter"]).toBe(15);
 
     commands.setNodeMode({
@@ -230,18 +255,12 @@ describe("planner store", () => {
       cap: 10
     });
     expect(store.getState().plan?.siteConfig.externalInputCaps["resource.iron-ore"]).toBe(10);
-    expect(store.getState().analysis?.bottlenecks).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          code: "bottleneck.external-cap",
-          nodeId: "node-smelter",
-          resourceId: "resource.iron-ore"
-        })
-      ])
-    );
+    expect(store.getState().analysis?.nodeRates["node-smelter"]).toBe(10);
+    expect(store.getState().analysis?.edgeRates["edge-ore-feed-a"]).toBe(10);
+    expect(store.getState().analysis?.edgeRates["edge-ore-feed-b"]).toBe(10);
 
-    commands.disconnectEdge("edge-ingot-feed");
-    expect(store.getState().plan?.edges["edge-ingot-feed"]).toBeUndefined();
+    commands.disconnectEdge("edge-ingot-feed-b");
+    expect(store.getState().plan?.edges["edge-ingot-feed-b"]).toBeUndefined();
     expect(store.getState().diagnostics.map((diagnostic) => diagnostic.code)).toContain(
       "connection.disconnected-output"
     );

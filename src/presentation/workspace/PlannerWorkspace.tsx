@@ -2,21 +2,16 @@ import { useMemo, useState } from "react";
 import { useStore } from "zustand";
 import type { PlannerStore } from "../../application/store/plannerStore";
 import { selectSelectedNode } from "../../application/store/selectors";
-import type { PortDefinition } from "../../domain/types";
+import type { PlaceableItem, PlannerCategory, PortDefinition } from "../../domain/types";
 import { getRotatedFootprintSize } from "../../domain/plan/geometry";
-import { moveNode, placeNode } from "../../domain/plan/operations";
+import { connectPorts, moveNode, placeNode } from "../../domain/plan/operations";
 import { ConnectionLayer } from "./ConnectionLayer";
-import {
-  cellKey,
-  GridLayer,
-  GRID_CELL_GAP,
-  GRID_CELL_SIZE,
-  GRID_PADDING
-} from "./GridLayer";
+import { cellKey, GridLayer } from "./GridLayer";
 import { NodeLayer } from "./NodeLayer";
 import { PlacementGhost } from "./PlacementGhost";
 import styles from "./PlannerWorkspace.module.css";
 import { usePlannerHotkeys } from "./usePlannerHotkeys";
+import { getCanvasPixelSize, resolveIconSource } from "./workspaceLayout";
 
 type PlannerWorkspaceProps = {
   store: PlannerStore;
@@ -27,12 +22,37 @@ function nextRotation(rotation: 0 | 90 | 180 | 270) {
   return rotations[(rotations.indexOf(rotation) + 1) % rotations.length] ?? 0;
 }
 
+function previousRotation(rotation: 0 | 90 | 180 | 270) {
+  const rotations: Array<0 | 90 | 180 | 270> = [0, 90, 180, 270];
+  return rotations[(rotations.indexOf(rotation) + rotations.length - 1) % rotations.length] ?? 0;
+}
+
+const PLANNER_CATEGORIES: PlannerCategory[] = [
+  "machines",
+  "logistics",
+  "storage",
+  "utilities"
+];
+
+const PLANNER_CATEGORY_LABELS: Record<PlannerCategory, string> = {
+  machines: "机器",
+  logistics: "物流",
+  storage: "仓储",
+  utilities: "设施"
+};
+
 export function PlannerWorkspace({ store }: PlannerWorkspaceProps) {
   const plannerState = useStore(store);
   const selectedNode = useMemo(() => selectSelectedNode(plannerState), [plannerState]);
   const plan = plannerState.plan;
   const dataset = plannerState.dataset;
   const [pendingCatalogId, setPendingCatalogId] = useState<string | null>(null);
+  const [expandedCategories, setExpandedCategories] = useState<Record<PlannerCategory, boolean>>({
+    machines: true,
+    logistics: true,
+    storage: true,
+    utilities: true
+  });
   const [pendingConnection, setPendingConnection] = useState<{
     nodeId: string;
     portId: string;
@@ -58,7 +78,31 @@ export function PlannerWorkspace({ store }: PlannerWorkspaceProps) {
     return cells;
   }, [sitePreset]);
 
-  const catalogItems = Object.values(dataset.placeableItems);
+  const catalogItemsByCategory = useMemo(() => {
+    const grouped = {
+      machines: [] as PlaceableItem[],
+      logistics: [] as PlaceableItem[],
+      storage: [] as PlaceableItem[],
+      utilities: [] as PlaceableItem[]
+    };
+
+    for (const item of Object.values(dataset.placeableItems)) {
+      grouped[item.plannerCategory].push(item);
+    }
+
+    for (const category of PLANNER_CATEGORIES) {
+      grouped[category].sort((a, b) => {
+        if (a.availabilityStatus !== b.availabilityStatus) {
+          return a.availabilityStatus === "validated" ? -1 : 1;
+        }
+
+        return a.nameZhHans.localeCompare(b.nameZhHans, "zh-Hans");
+      });
+    }
+
+    return grouped;
+  }, [dataset.placeableItems]);
+
   const portDefinitionsByNodeId = useMemo<Record<string, PortDefinition[]>>(
     () =>
       Object.fromEntries(
@@ -135,35 +179,113 @@ export function PlannerWorkspace({ store }: PlannerWorkspaceProps) {
     return null;
   }
 
-  const canvasWidth =
-    sitePreset.width * GRID_CELL_SIZE + (sitePreset.width - 1) * GRID_CELL_GAP;
-  const canvasHeight =
-    sitePreset.height * GRID_CELL_SIZE + (sitePreset.height - 1) * GRID_CELL_GAP;
+  const canvasSize = getCanvasPixelSize({
+    width: sitePreset.width,
+    height: sitePreset.height
+  });
 
   return (
     <section className={styles.workspace} data-testid="planner-workspace">
       <div className={styles.controls}>
         <div className={styles.catalog}>
-          {catalogItems.map((item) => (
-            <button
-              key={item.id}
-              className={styles.catalogButton}
-              data-active={pendingCatalogId === item.id}
-              data-testid={`catalog-item:${item.id}`}
-              onClick={() => {
-                setPendingCatalogId(item.id);
-                setPendingConnection(null);
-                plannerState.commands.selectNode(null);
-              }}
-              type="button"
-            >
-              {item.name}
-            </button>
-          ))}
+          {PLANNER_CATEGORIES.map((category) => {
+            const isExpanded = expandedCategories[category];
+            const items = catalogItemsByCategory[category];
+
+            return (
+              <section
+                className={styles.catalogCategory}
+                data-testid={`catalog-category:${category}`}
+                key={category}
+              >
+                <button
+                  aria-expanded={isExpanded}
+                  className={styles.categoryToggle}
+                  data-testid={`catalog-category-toggle:${category}`}
+                  onClick={() =>
+                    setExpandedCategories((current) => ({
+                      ...current,
+                      [category]: !current[category]
+                    }))
+                  }
+                  type="button"
+                >
+                  <span>{PLANNER_CATEGORY_LABELS[category]}</span>
+                </button>
+                {isExpanded ? (
+                  <div className={styles.catalogRail} data-testid={`catalog-rail:${category}`}>
+                    {items.map((item) => {
+                      const disabled = item.availabilityStatus !== "validated";
+                      const iconSource = resolveIconSource(item.icon);
+
+                      return (
+                        <button
+                          key={item.id}
+                          className={styles.catalogButton}
+                          data-active={pendingCatalogId === item.id}
+                          data-disabled={disabled}
+                          data-testid={`catalog-item:${item.id}`}
+                          disabled={disabled}
+                          onClick={() => {
+                            if (disabled) {
+                              return;
+                            }
+
+                            setPendingCatalogId(item.id);
+                            setPendingConnection(null);
+                            plannerState.commands.selectNode(null);
+                          }}
+                          type="button"
+                        >
+                          <span className={styles.catalogIconWrap} data-testid={`catalog-icon:${item.id}`}>
+                            {iconSource ? (
+                              <img alt="" className={styles.catalogIcon} src={iconSource} />
+                            ) : (
+                              <span aria-hidden className={styles.catalogFallbackIcon}>
+                                {item.nameZhHans.slice(0, 1)}
+                              </span>
+                            )}
+                          </span>
+                          <span className={styles.catalogLabel}>{item.nameZhHans}</span>
+                          <span
+                            className={styles.catalogItemState}
+                            data-testid={`catalog-item-state:${item.id}`}
+                          >
+                            {disabled ? "仅参考" : "可放置"}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : null}
+              </section>
+            );
+          })}
         </div>
         <div className={styles.selectionActions}>
           <button
             className={styles.actionButton}
+            data-testid="rotate-left-button"
+            disabled={!selectedNode}
+            onClick={() => {
+              if (!selectedNode) {
+                return;
+              }
+
+              plannerState.commands.moveNode({
+                nodeId: selectedNode.id,
+                position: selectedNode.position,
+                rotation: previousRotation(selectedNode.rotation)
+              });
+            }}
+            type="button"
+          >
+            Rotate Left
+          </button>
+          <button
+            className={styles.actionButton}
+            data-testid="rotate-right-button"
+            disabled={!selectedNode}
             onClick={() => {
               if (!selectedNode) {
                 return;
@@ -177,10 +299,12 @@ export function PlannerWorkspace({ store }: PlannerWorkspaceProps) {
             }}
             type="button"
           >
-            Rotate
+            Rotate Right
           </button>
           <button
             className={styles.actionButton}
+            data-testid="delete-node-button"
+            disabled={!selectedNode}
             onClick={() => {
               if (selectedNode) {
                 plannerState.commands.removeNode(selectedNode.id);
@@ -193,16 +317,16 @@ export function PlannerWorkspace({ store }: PlannerWorkspaceProps) {
         </div>
       </div>
       <p className={styles.hint}>
-        Click a catalog item, then click the grid to place it. Select an existing node
-        and click a new cell to move it. Click an output port, then an input port to
-        author a connection. Press <strong>R</strong> to rotate or <strong>Delete</strong>{" "}
-        to remove.
+        Click a validated catalog item to place it. Reference-only records remain visible
+        for browsing. Select an existing node and click a new cell to move it. Click an
+        output port, then a touching input port that faces it to author a connection.
+        Press <strong>R</strong> for clockwise rotate or <strong>Delete</strong> to remove.
       </p>
       <div
         className={styles.canvas}
         style={{
-          width: canvasWidth + GRID_PADDING * 2,
-          minHeight: canvasHeight + GRID_PADDING * 2
+          width: canvasSize.width,
+          minHeight: canvasSize.height
         }}
       >
         <GridLayer
@@ -242,14 +366,14 @@ export function PlannerWorkspace({ store }: PlannerWorkspaceProps) {
         />
         <ConnectionLayer
           edges={Object.values(plan.edges)}
-          height={canvasHeight}
+          height={canvasSize.height}
           nodes={Object.values(plan.nodes)}
           onSelectEdge={(edgeId) => {
             plannerState.commands.disconnectEdge(edgeId);
             setPendingConnection(null);
           }}
           portDefinitionsByNodeId={portDefinitionsByNodeId}
-          width={canvasWidth}
+          width={canvasSize.width}
         />
         <NodeLayer
           nodes={Object.values(plan.nodes)}
@@ -268,6 +392,17 @@ export function PlannerWorkspace({ store }: PlannerWorkspaceProps) {
               return;
             }
 
+            const connectionPreview = connectPorts(plan, dataset, {
+              sourceNodeId: pendingConnection.nodeId,
+              sourcePortId: pendingConnection.portId,
+              targetNodeId: input.nodeId,
+              targetPortId: input.portId
+            });
+            if (!connectionPreview.ok) {
+              setPendingConnection(null);
+              return;
+            }
+
             plannerState.commands.connectPorts({
               sourceNodeId: pendingConnection.nodeId,
               sourcePortId: pendingConnection.portId,
@@ -280,6 +415,7 @@ export function PlannerWorkspace({ store }: PlannerWorkspaceProps) {
           pendingPortKey={
             pendingConnection ? `${pendingConnection.nodeId}:${pendingConnection.portId}` : null
           }
+          placeableItemsById={dataset.placeableItems}
           portDefinitionsByNodeId={portDefinitionsByNodeId}
           selectedNodeId={plannerState.selection.selectedNodeId}
         />

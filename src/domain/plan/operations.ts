@@ -1,4 +1,4 @@
-import type { DatasetBundle } from "../types";
+import type { DatasetBundle, PortDefinition } from "../types";
 import {
   createPlanNode,
   type GridPoint,
@@ -8,11 +8,14 @@ import {
 } from "./document";
 import {
   findBlockedZoneOverlap,
+  getNodeOccupiedCells,
+  getNodePortSide,
   getNodeRect,
+  getTouchingSides,
   isRectInBuildableZone,
   isRectWithinSite,
   normalizeRotation,
-  rectsOverlap
+  pointKey
 } from "./geometry";
 
 export type PlacementFailureCode =
@@ -33,7 +36,13 @@ export type PlacementFailure = {
 export type PlanMutationFailureCode =
   | "unknown-node"
   | "unknown-edge"
-  | "unknown-resource";
+  | "unknown-port"
+  | "unknown-resource"
+  | "invalid-direction"
+  | "medium-mismatch"
+  | "resource-mismatch"
+  | "non-adjacent"
+  | "invalid-side";
 
 export type PlanMutationFailure = {
   code: PlanMutationFailureCode;
@@ -134,9 +143,12 @@ function evaluatePlacement(
     return fail("blocked-zone", `Node "${candidate.id}" overlaps a blocked site zone`);
   }
 
+  const candidateCells = new Set(getNodeOccupiedCells(candidate).map(pointKey));
   const collisions = Object.values(plan.nodes)
     .filter((node) => node.id !== ignoreNodeId)
-    .filter((node) => rectsOverlap(candidateRect, getNodeRect(node)))
+    .filter((node) => {
+      return getNodeOccupiedCells(node).some((cell) => candidateCells.has(pointKey(cell)));
+    })
     .map((node) => node.id);
 
   if (collisions.length > 0) {
@@ -243,25 +255,106 @@ export type ConnectPortsInput = {
   targetPortId: string;
 };
 
+function getPortDefinition(
+  dataset: DatasetBundle,
+  plan: PlanDocument,
+  nodeId: string,
+  portId: string
+): PortDefinition | null {
+  const node = plan.nodes[nodeId];
+
+  if (!node) {
+    return null;
+  }
+
+  const item = dataset.placeableItems[node.catalogId];
+  return item?.ports.find((port) => port.id === portId) ?? null;
+}
+
 export function createEdgeId(input: ConnectPortsInput) {
   return `edge-${input.sourceNodeId}-${input.sourcePortId}-${input.targetNodeId}-${input.targetPortId}`;
 }
 
 export function connectPorts(
   plan: PlanDocument,
+  dataset: DatasetBundle,
   input: ConnectPortsInput
 ): PlanMutationResult {
-  if (!plan.nodes[input.sourceNodeId]) {
+  const sourceNode = plan.nodes[input.sourceNodeId];
+  if (!sourceNode) {
     return failMutation(
       "unknown-node",
       `Unknown source node "${input.sourceNodeId}" for connection`
     );
   }
 
-  if (!plan.nodes[input.targetNodeId]) {
+  const targetNode = plan.nodes[input.targetNodeId];
+  if (!targetNode) {
     return failMutation(
       "unknown-node",
       `Unknown target node "${input.targetNodeId}" for connection`
+    );
+  }
+
+  const sourcePort = getPortDefinition(dataset, plan, input.sourceNodeId, input.sourcePortId);
+  if (!sourcePort) {
+    return failMutation(
+      "unknown-port",
+      `Unknown source port "${input.sourcePortId}" on node "${input.sourceNodeId}".`
+    );
+  }
+
+  const targetPort = getPortDefinition(dataset, plan, input.targetNodeId, input.targetPortId);
+  if (!targetPort) {
+    return failMutation(
+      "unknown-port",
+      `Unknown target port "${input.targetPortId}" on node "${input.targetNodeId}".`
+    );
+  }
+
+  if (sourcePort.flow !== "output" || targetPort.flow !== "input") {
+    return failMutation(
+      "invalid-direction",
+      "Connections must start from an output port and end on an input port."
+    );
+  }
+
+  if (sourcePort.mediumKind !== targetPort.mediumKind) {
+    return failMutation(
+      "medium-mismatch",
+      "Connections can only join ports that share the same transport medium."
+    );
+  }
+
+  const sharesResource = sourcePort.resourceIds.some((resourceId) =>
+    targetPort.resourceIds.includes(resourceId)
+  );
+
+  if (!sharesResource) {
+    return failMutation(
+      "resource-mismatch",
+      "Connections can only join ports that share at least one compatible resource."
+    );
+  }
+
+  const touchingSides = getTouchingSides(sourceNode, targetNode);
+  if (!touchingSides) {
+    return failMutation(
+      "non-adjacent",
+      "Connections can only join touching neighbors on the grid."
+    );
+  }
+
+  const sourceSide = getNodePortSide(sourceNode, sourcePort);
+  const targetSide = getNodePortSide(targetNode, targetPort);
+
+  if (
+    sourceSide !== touchingSides.sourceSide ||
+    targetSide !== touchingSides.targetSide
+  ) {
+    return failMutation(
+      "invalid-side",
+      "Connections can only join ports that face each other on touching sides."
     );
   }
 

@@ -22,6 +22,41 @@
   gap: 10px;
 }
 
+.header {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: center;
+}
+
+.iconWrap {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  border: 1px solid var(--border-strong);
+  background: rgba(255, 255, 255, 0.05);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.icon {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fallbackIcon {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.identity {
+  display: grid;
+  gap: 4px;
+}
+
 .field {
   display: grid;
   gap: 6px;
@@ -47,14 +82,62 @@
   font-size: 1.1rem;
 }
 
+.subtle {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+}
+
+.badgeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+}
+
 .meta {
   margin: 0;
   color: var(--text-secondary);
   line-height: 1.45;
 }
 
+.factGrid {
+  display: grid;
+  gap: 8px;
+}
+
+.fact {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-secondary);
+}
+
+.section {
+  display: grid;
+  gap: 8px;
+}
+
+.sectionHeading {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
 .list {
   margin: 0;
   padding-left: 18px;
   color: var(--text-secondary);
+  display: grid;
+  gap: 4px;
 }

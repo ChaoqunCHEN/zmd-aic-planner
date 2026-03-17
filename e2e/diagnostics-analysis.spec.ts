@@ -15,17 +15,20 @@ test("surfaces invalid placement, invalid connection diagnostics, mode changes, 
   const smelterNode = page.getByTestId("plan-node:node-smelter");
   await smelterNode.click();
   await expect(page.getByTestId("selection-inspector")).toContainText(
-    "Current throughput: 15.00/min"
+    "当前吞吐：15.00/min"
   );
 
   await page.getByTestId("node-mode-select").selectOption("mode.basic-smelter.efficient");
   await expect(page.getByTestId("selection-inspector")).toContainText(
-    "Current throughput: 11.25/min"
+    "当前吞吐：11.25/min"
   );
 
   await page.getByTestId("port:node-intake:ore-out").click();
   await page.getByTestId("port:node-output:ingot-in").click();
-  await expect(page.getByTestId("diagnostic-item:connection.resource-mismatch")).toBeVisible();
+  await expect(page.getByTestId(/plan-edge:/)).toHaveCount(2);
+  await expect(page.getByTestId("diagnostics-panel")).not.toContainText(
+    "connection.resource-mismatch"
+  );
 
   await page.getByTestId("input-cap:resource.iron-ore").fill("10");
   await expect(page.getByTestId("diagnostic-item:cap.external-input-exceeded")).toBeVisible();

@@ -10,7 +10,7 @@ import sitePresets from "../../../../game-data/site-presets.json";
 import { loadDataset } from "../../dataset/loadDataset";
 import { createPlan } from "../document";
 import { getNodeFootprintSize } from "../geometry";
-import { moveNode, placeNode, removeNode } from "../operations";
+import { connectPorts, moveNode, placeNode, removeNode } from "../operations";
 
 const datasetResult = loadDataset({
   manifest,
@@ -135,6 +135,36 @@ describe("placeNode", () => {
     });
     expect(result.plan.nodes["node-terminal"]?.rotation).toBe(90);
   });
+
+  it("treats belts and pipes as explicit occupied nodes on the grid", () => {
+    const plan = createPlan(dataset, { sitePresetId: "site.training-yard" });
+    const belt = placeNode(plan, dataset, {
+      nodeId: "node-belt",
+      catalogId: "belt.basic-conveyor",
+      position: { x: 1, y: 4 }
+    });
+
+    expect(belt.ok).toBe(true);
+    if (!belt.ok) {
+      return;
+    }
+
+    expect(belt.plan.nodes["node-belt"]?.kind).toBe("logistics");
+
+    const pipeCollision = placeNode(belt.plan, dataset, {
+      nodeId: "node-pipe",
+      catalogId: "pipe.basic-pipe",
+      position: { x: 1, y: 4 }
+    });
+
+    expect(pipeCollision.ok).toBe(false);
+    if (pipeCollision.ok) {
+      return;
+    }
+
+    expect(pipeCollision.reason.code).toBe("footprint-collision");
+    expect(pipeCollision.reason.conflictingNodeIds).toContain("node-belt");
+  });
 });
 
 describe("moveNode", () => {
@@ -189,6 +219,83 @@ describe("moveNode", () => {
     }
 
     expect(moved.reason.code).toBe("out-of-bounds");
+  });
+});
+
+describe("connectPorts", () => {
+  it("rejects direct links between non-touching nodes", () => {
+    const plan = createPlan(dataset, { sitePresetId: "site.training-yard" });
+    const intake = placeNode(plan, dataset, {
+      nodeId: "node-intake",
+      catalogId: "terminal.ore-intake",
+      position: { x: 0, y: 4 }
+    });
+    expect(intake.ok).toBe(true);
+    if (!intake.ok) {
+      return;
+    }
+
+    const smelter = placeNode(intake.plan, dataset, {
+      nodeId: "node-smelter",
+      catalogId: "machine.basic-smelter",
+      position: { x: 2, y: 4 }
+    });
+    expect(smelter.ok).toBe(true);
+    if (!smelter.ok) {
+      return;
+    }
+
+    const connection = connectPorts(smelter.plan, dataset, {
+      sourceNodeId: "node-intake",
+      sourcePortId: "ore-out",
+      targetNodeId: "node-smelter",
+      targetPortId: "ore-in"
+    });
+
+    expect(connection.ok).toBe(false);
+    if (connection.ok) {
+      return;
+    }
+
+    expect(connection.reason.code).toBe("non-adjacent");
+  });
+
+  it("rejects adjacent links that do not use facing sides", () => {
+    const plan = createPlan(dataset, { sitePresetId: "site.training-yard" });
+    const intake = placeNode(plan, dataset, {
+      nodeId: "node-intake",
+      catalogId: "terminal.ore-intake",
+      position: { x: 1, y: 4 }
+    });
+    expect(intake.ok).toBe(true);
+    if (!intake.ok) {
+      return;
+    }
+
+    const smelter = placeNode(intake.plan, dataset, {
+      nodeId: "node-smelter",
+      catalogId: "machine.basic-smelter",
+      position: { x: 2, y: 4 },
+      rotation: 90
+    });
+    expect(smelter.ok).toBe(true);
+    if (!smelter.ok) {
+      return;
+    }
+
+    const connection = connectPorts(smelter.plan, dataset, {
+      sourceNodeId: "node-intake",
+      sourcePortId: "ore-out",
+      targetNodeId: "node-smelter",
+      targetPortId: "ore-in"
+    });
+
+    expect(connection.ok).toBe(false);
+    if (connection.ok) {
+      return;
+    }
+
+    expect(connection.reason.code).toBe("invalid-side");
   });
 });
 

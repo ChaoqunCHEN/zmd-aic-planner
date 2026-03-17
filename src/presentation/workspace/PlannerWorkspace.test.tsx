@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import manifest from "../../../game-data/dataset-manifest.json";
@@ -29,6 +29,13 @@ if (!datasetResult.ok) {
 }
 
 const dataset = datasetResult.data;
+const referenceOnlyCatalogItem = placeableItems.find(
+  (item) => item.availabilityStatus === "reference-only"
+);
+
+if (!referenceOnlyCatalogItem) {
+  throw new Error("Expected at least one reference-only catalog item in bundled dataset");
+}
 
 function setupWorkspace() {
   const storage = {
@@ -44,7 +51,53 @@ function setupWorkspace() {
 }
 
 describe("PlannerWorkspace", () => {
-  it("places from the catalog, selects, moves, rotates, and deletes nodes on the grid", async () => {
+  it("shows planner-category accordion browsing with Chinese-first labels and icons", async () => {
+    const user = userEvent.setup();
+    const store = setupWorkspace();
+
+    render(<PlannerWorkspace store={store} />);
+
+    const machinesToggle = screen.getByTestId("catalog-category-toggle:machines");
+    expect(machinesToggle).toHaveAttribute("aria-expanded", "true");
+
+    const machinesRail = screen.getByTestId("catalog-rail:machines");
+    expect(
+      within(machinesRail).getByTestId("catalog-item:machine.basic-smelter")
+    ).toHaveTextContent("基础冶炼炉");
+    expect(
+      within(machinesRail).getByTestId("catalog-icon:machine.basic-smelter")
+    ).toBeVisible();
+    expect(screen.queryByText("Basic Smelter")).not.toBeInTheDocument();
+
+    await user.click(machinesToggle);
+    expect(machinesToggle).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByTestId("catalog-rail:machines")).not.toBeInTheDocument();
+  });
+
+  it("keeps reference-only catalog items visible but disabled and non-placeable", async () => {
+    const user = userEvent.setup();
+    const store = setupWorkspace();
+
+    render(<PlannerWorkspace store={store} />);
+
+    const referenceButton = screen.getByTestId(`catalog-item:${referenceOnlyCatalogItem.id}`);
+    expect(referenceButton).toBeDisabled();
+    expect(
+      screen.getByTestId(`catalog-item-state:${referenceOnlyCatalogItem.id}`)
+    ).toHaveTextContent("仅参考");
+
+    await user.click(referenceButton);
+    await user.hover(screen.getByTestId("grid-cell:2:4"));
+    expect(screen.queryByTestId("placement-ghost")).not.toBeInTheDocument();
+
+    await user.click(screen.getByTestId("grid-cell:2:4"));
+    const hasReferenceNode = Object.values(store.getState().plan?.nodes ?? {}).some(
+      (node) => node.catalogId === referenceOnlyCatalogItem.id
+    );
+    expect(hasReferenceNode).toBe(false);
+  });
+
+  it("places from the catalog, renders icon-first nodes, then selects, moves, rotates, and deletes", async () => {
     const user = userEvent.setup();
     const store = setupWorkspace();
 
@@ -58,6 +111,10 @@ describe("PlannerWorkspace", () => {
 
     const placedNode = screen.getByTestId(/plan-node:node-/);
     expect(placedNode).toBeVisible();
+    expect(within(placedNode).getByTestId(/plan-node-icon:node-/)).toBeVisible();
+    expect(screen.queryByText(/node-\d+/)).not.toBeInTheDocument();
+    expect(within(placedNode).queryByText("基础冶炼炉")).not.toBeInTheDocument();
+    expect(within(placedNode).queryByText("Basic Smelter")).not.toBeInTheDocument();
 
     await user.click(placedNode);
     await user.click(screen.getByTestId("grid-cell:7:5"));
@@ -72,7 +129,121 @@ describe("PlannerWorkspace", () => {
     expect(store.getState().plan?.nodes[movedNodeId]).toBeUndefined();
   });
 
+  it("shows selected-node rotation controls and rotates port markers with the node", async () => {
+    const user = userEvent.setup();
+    const store = setupWorkspace();
+
+    render(<PlannerWorkspace store={store} />);
+
+    await user.click(screen.getByTestId("catalog-item:machine.basic-smelter"));
+    await user.click(screen.getByTestId("grid-cell:2:4"));
+
+    const nodeId = Object.keys(store.getState().plan?.nodes ?? {})[0];
+    if (!nodeId) {
+      throw new Error("Expected node placement to succeed");
+    }
+
+    await user.click(screen.getByTestId(`plan-node:${nodeId}`));
+
+    const rotateRight = screen.getByTestId("rotate-right-button");
+    expect(rotateRight).toBeEnabled();
+
+    const oreInPortBefore = screen.getByTestId(`port:${nodeId}:ore-in`).getAttribute("style");
+    await user.click(rotateRight);
+    expect(store.getState().plan?.nodes[nodeId]?.rotation).toBe(90);
+    const oreInPortAfter = screen.getByTestId(`port:${nodeId}:ore-in`).getAttribute("style");
+    expect(oreInPortAfter).not.toEqual(oreInPortBefore);
+  });
+
+  it("keeps ghost and node shell aligned on the shared workspace coordinate system", async () => {
+    const user = userEvent.setup();
+    const store = setupWorkspace();
+
+    render(<PlannerWorkspace store={store} />);
+
+    await user.click(screen.getByTestId("catalog-item:machine.basic-smelter"));
+    await user.hover(screen.getByTestId("grid-cell:2:4"));
+
+    const ghost = screen.getByTestId("placement-ghost");
+    expect(ghost).toHaveAttribute("data-state", "valid");
+    expect(ghost).toHaveStyle({ left: "100px", top: "188px" });
+
+    await user.click(screen.getByTestId("grid-cell:2:4"));
+
+    const nodeId = Object.keys(store.getState().plan?.nodes ?? {})[0];
+    if (!nodeId) {
+      throw new Error("Expected node placement to succeed");
+    }
+
+    const nodeShell = screen.getByTestId(`plan-node-shell:${nodeId}`);
+    expect(nodeShell).toHaveStyle({ left: "100px", top: "188px" });
+  });
+
   it("authors and removes connections through node ports", async () => {
+    const user = userEvent.setup();
+    const store = setupWorkspace();
+
+    store.getState().commands.placeNode({
+      nodeId: "node-intake",
+      catalogId: "terminal.ore-intake",
+      position: { x: 1, y: 4 }
+    });
+    store.getState().commands.placeNode({
+      nodeId: "node-smelter",
+      catalogId: "machine.basic-smelter",
+      position: { x: 2, y: 4 }
+    });
+
+    render(<PlannerWorkspace store={store} />);
+
+    const intakeNodeShell = screen.getByTestId("plan-node-shell:node-intake");
+    const smelterNodeShell = screen.getByTestId("plan-node-shell:node-smelter");
+    const intakePort = screen.getByTestId("port:node-intake:ore-out");
+    const smelterPort = screen.getByTestId("port:node-smelter:ore-in");
+
+    expect(intakePort).toHaveAccessibleName(/矿石输入终端/i);
+    expect(intakePort).toHaveAccessibleName(/ore-out/i);
+    expect(intakePort).toHaveAccessibleName(/output/i);
+    expect(smelterPort).toHaveAccessibleName(/基础冶炼炉/i);
+    expect(smelterPort).toHaveAccessibleName(/ore-in/i);
+    expect(smelterPort).toHaveAccessibleName(/input/i);
+
+    expect(parseFloat(intakePort.style.left)).toBeCloseTo(42);
+    expect(parseFloat(intakePort.style.top)).toBeCloseTo(21);
+    expect(parseFloat(smelterPort.style.left)).toBeCloseTo(0);
+    expect(parseFloat(smelterPort.style.top)).toBeCloseTo(43);
+
+    await user.click(intakePort);
+    await user.click(smelterPort);
+
+    const edge = screen.getByTestId("plan-edge:edge-node-intake-ore-out-node-smelter-ore-in");
+    expect(edge).toBeVisible();
+
+    const intakeShellLeft = parseFloat(intakeNodeShell.style.left);
+    const intakeShellTop = parseFloat(intakeNodeShell.style.top);
+    const smelterShellLeft = parseFloat(smelterNodeShell.style.left);
+    const smelterShellTop = parseFloat(smelterNodeShell.style.top);
+
+    expect(parseFloat(edge.getAttribute("x1") ?? "NaN")).toBeCloseTo(
+      intakeShellLeft + parseFloat(intakePort.style.left)
+    );
+    expect(parseFloat(edge.getAttribute("y1") ?? "NaN")).toBeCloseTo(
+      intakeShellTop + parseFloat(intakePort.style.top)
+    );
+    expect(parseFloat(edge.getAttribute("x2") ?? "NaN")).toBeCloseTo(
+      smelterShellLeft + parseFloat(smelterPort.style.left)
+    );
+    expect(parseFloat(edge.getAttribute("y2") ?? "NaN")).toBeCloseTo(
+      smelterShellTop + parseFloat(smelterPort.style.top)
+    );
+
+    await user.click(edge);
+    expect(
+      screen.queryByTestId("plan-edge:edge-node-intake-ore-out-node-smelter-ore-in")
+    ).not.toBeInTheDocument();
+  });
+
+  it("blocks non-touching or wrong-side connections before they reach plan state", async () => {
     const user = userEvent.setup();
     const store = setupWorkspace();
 
@@ -91,13 +262,20 @@ describe("PlannerWorkspace", () => {
 
     await user.click(screen.getByTestId("port:node-intake:ore-out"));
     await user.click(screen.getByTestId("port:node-smelter:ore-in"));
+    expect(Object.keys(store.getState().plan?.edges ?? {})).toHaveLength(0);
 
-    const edge = screen.getByTestId("plan-edge:edge-node-intake-ore-out-node-smelter-ore-in");
-    expect(edge).toBeVisible();
+    store.getState().commands.moveNode({
+      nodeId: "node-intake",
+      position: { x: 1, y: 4 }
+    });
+    store.getState().commands.moveNode({
+      nodeId: "node-smelter",
+      position: { x: 2, y: 4 },
+      rotation: 90
+    });
 
-    await user.click(edge);
-    expect(
-      screen.queryByTestId("plan-edge:edge-node-intake-ore-out-node-smelter-ore-in")
-    ).not.toBeInTheDocument();
+    await user.click(screen.getByTestId("port:node-intake:ore-out"));
+    await user.click(screen.getByTestId("port:node-smelter:ore-in"));
+    expect(Object.keys(store.getState().plan?.edges ?? {})).toHaveLength(0);
   });
 });

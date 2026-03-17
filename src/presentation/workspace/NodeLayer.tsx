@@ -1,14 +1,16 @@
-import type { PortDefinition } from "../../domain/types";
-import { getRotatedFootprintSize } from "../../domain/plan/geometry";
+import type { CSSProperties } from "react";
 import type { PlanNode } from "../../domain/plan/document";
+import type { PlaceableItem, PortDefinition } from "../../domain/types";
 import {
-  GRID_CELL_GAP,
-  GRID_CELL_SIZE
-} from "./GridLayer";
+  getNodePixelBounds,
+  getNodePortLocalAnchor,
+  resolveIconSource
+} from "./workspaceLayout";
 import styles from "./NodeLayer.module.css";
 
 type NodeLayerProps = {
   nodes: PlanNode[];
+  placeableItemsById: Readonly<Record<string, PlaceableItem>>;
   portDefinitionsByNodeId: Record<string, PortDefinition[]>;
   pendingPortKey: string | null;
   selectedNodeId: string | null;
@@ -18,6 +20,7 @@ type NodeLayerProps = {
 
 export function NodeLayer({
   nodes,
+  placeableItemsById,
   portDefinitionsByNodeId,
   pendingPortKey,
   selectedNodeId,
@@ -27,40 +30,56 @@ export function NodeLayer({
   return (
     <div className={styles.layer}>
       {nodes.map((node) => {
-        const footprint = getRotatedFootprintSize(node.footprint, node.rotation);
-        const width = footprint.width * GRID_CELL_SIZE + (footprint.width - 1) * GRID_CELL_GAP;
-        const height = footprint.height * GRID_CELL_SIZE + (footprint.height - 1) * GRID_CELL_GAP;
+        const nodeBounds = getNodePixelBounds(node);
         const ports = portDefinitionsByNodeId[node.id] ?? [];
+        const catalogItem = placeableItemsById[node.catalogId];
+        const iconSource = resolveIconSource(catalogItem?.icon);
+        const nodeLabel = catalogItem?.nameZhHans ?? catalogItem?.name ?? node.catalogId;
+        const fallbackGlyph = nodeLabel.slice(0, 1);
 
         return (
           <div
             key={node.id}
             className={`${styles.node} ${selectedNodeId === node.id ? styles.selected : ""}`}
+            data-testid={`plan-node-shell:${node.id}`}
             style={{
-              left: node.position.x * (GRID_CELL_SIZE + GRID_CELL_GAP),
-              top: node.position.y * (GRID_CELL_SIZE + GRID_CELL_GAP),
-              width,
-              height,
+              left: nodeBounds.left,
+              top: nodeBounds.top,
+              width: nodeBounds.width,
+              height: nodeBounds.height
             }}
           >
             <button
+              aria-label={nodeLabel}
               className={styles.nodeButton}
               data-testid={`plan-node:${node.id}`}
               onClick={(event) => {
                 event.stopPropagation();
                 onSelectNode(node.id);
               }}
-              style={{
-                transform: node.rotation ? `rotate(${node.rotation}deg)` : undefined
-              }}
+              title={nodeLabel}
               type="button"
             >
-              {node.id}
+              <span className={styles.nodeIconWrap} data-testid={`plan-node-icon:${node.id}`}>
+                {iconSource ? (
+                  <img alt="" className={styles.nodeIcon} src={iconSource} />
+                ) : (
+                  <span aria-hidden className={styles.fallbackIcon}>
+                    {fallbackGlyph}
+                  </span>
+                )}
+              </span>
             </button>
-            {ports.map((port, index) => {
-              const left = port.flow === "input" ? 0 : width;
-              const top = ((index + 1) / (ports.length + 1)) * height;
+            {ports.map((port) => {
+              const anchor = getNodePortLocalAnchor(node, port);
               const portKey = `${node.id}:${port.id}`;
+              const portDirectionLabel = port.flow === "input" ? "input" : "output";
+              const portLabel = `${nodeLabel} ${portDirectionLabel} port ${port.id}`;
+              const style = {
+                left: anchor.x,
+                top: anchor.y,
+                ["--port-rotation" as string]: `${anchor.rotation}deg`
+              } as CSSProperties;
 
               return (
                 <button
@@ -75,10 +94,12 @@ export function NodeLayer({
                       flow: port.flow
                     });
                   }}
-                  style={{ left, top }}
+                  aria-label={portLabel}
+                  style={style}
+                  title={portLabel}
                   type="button"
                 >
-                  {port.id}
+                  <span aria-hidden className={styles.portGlyph} />
                 </button>
               );
             })}

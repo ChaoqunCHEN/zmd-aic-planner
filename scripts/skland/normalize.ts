@@ -38,6 +38,31 @@ function buildSourceRefs(discovery: SklandDiscoveryRecord, detail: SklandDetailR
   ];
 }
 
+function normalizeSourceLabel(label: string | undefined): string | undefined {
+  if (!label) {
+    return undefined;
+  }
+
+  const trimmed = label.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function inferPlannerCategory(subtype: PlaceableItem["subtype"]): PlaceableItem["plannerCategory"] {
+  if (subtype === "storage") {
+    return "storage";
+  }
+
+  if (subtype === "belt" || subtype === "pipe" || subtype === "logistics-building") {
+    return "logistics";
+  }
+
+  if (subtype === "terminal") {
+    return "utilities";
+  }
+
+  return "machines";
+}
+
 export function normalizeEquipmentRecord(input: {
   discovery: SklandDiscoveryRecord;
   detail: SklandDetailRecord;
@@ -73,7 +98,12 @@ export function normalizeEquipmentRecord(input: {
       sourceNotes: ["Normalized from guarded public Skland endpoints with local mirrored assets."]
     },
     sourceRefs: buildSourceRefs(input.discovery, input.detail),
+    plannerCategory: inferPlannerCategory(subtype),
+    sourceCategoryLabel: normalizeSourceLabel(input.discovery.categoryName),
+    sourceSubCategoryLabel: normalizeSourceLabel(input.discovery.subCategoryName),
+    availabilityStatus: "reference-only",
     worldCategory: "placeable",
+    placementKind: "area",
     placeableClass: "area",
     subtype,
     footprint: {

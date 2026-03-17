@@ -27,6 +27,28 @@ if (!datasetResult.ok) {
 const dataset = datasetResult.data;
 
 describe("bundled seed data", () => {
+  it("stores v1.1 reference-only metadata explicitly on crawled placeables", () => {
+    const rawSklandPlaceable = placeableItems.find((item) => item.id === "machine.skland-10");
+    expect(rawSklandPlaceable).toBeDefined();
+
+    if (!rawSklandPlaceable) {
+      return;
+    }
+
+    expect(Object.prototype.hasOwnProperty.call(rawSklandPlaceable, "availabilityStatus")).toBe(
+      true
+    );
+    expect(rawSklandPlaceable.availabilityStatus).toBe("reference-only");
+    expect(Object.prototype.hasOwnProperty.call(rawSklandPlaceable, "plannerCategory")).toBe(true);
+    expect(Object.prototype.hasOwnProperty.call(rawSklandPlaceable, "placementKind")).toBe(true);
+    expect(Object.prototype.hasOwnProperty.call(rawSklandPlaceable, "sourceCategoryLabel")).toBe(
+      true
+    );
+    expect(
+      Object.prototype.hasOwnProperty.call(rawSklandPlaceable, "sourceSubCategoryLabel")
+    ).toBe(true);
+  });
+
   it("ships at least two curated site presets with matching rule coverage", () => {
     const sitePresetIds = Object.keys(dataset.sitePresets);
 
@@ -62,5 +84,61 @@ describe("bundled seed data", () => {
     expect(
       Object.values(dataset.siteFixtures).map((fixture) => fixture.fixtureCategory)
     ).toEqual(expect.arrayContaining(["resource-deposit", "obstacle"]));
+  });
+
+  it("contains a minimal validated interactive placeable set", () => {
+    const validated = Object.values(dataset.placeableItems).filter(
+      (item) => item.availabilityStatus === "validated"
+    );
+    const validatedIds = validated.map((item) => item.id);
+
+    expect(validatedIds).toEqual(
+      expect.arrayContaining([
+        "machine.basic-smelter",
+        "terminal.ore-intake",
+        "terminal.ingot-output",
+        "belt.basic-conveyor",
+        "pipe.basic-pipe",
+        "logistics-building.compact-splitter"
+      ])
+    );
+
+    for (const item of validated) {
+      expect(item.icon?.path).toBeTruthy();
+    }
+  });
+
+  it("keeps crawled placeables visible as reference-only records", () => {
+    expect(dataset.placeableItems["machine.skland-10"].availabilityStatus).toBe("reference-only");
+    expect(dataset.placeableItems["machine.skland-10"].plannerCategory).toBe("machines");
+  });
+
+  it("ships planner category and source-category metadata for curated logistics pieces", () => {
+    const belt = dataset.placeableItems["belt.basic-conveyor"];
+    const pipe = dataset.placeableItems["pipe.basic-pipe"];
+    const splitter = dataset.placeableItems["logistics-building.compact-splitter"];
+
+    expect(belt.plannerCategory).toBe("logistics");
+    expect(belt.sourceCategoryLabel).toBe("Conveyance");
+    expect(belt.placementKind).toBe("linear");
+    expect(belt.ports[0]).toMatchObject({
+      side: "west",
+      offset: 0.5,
+      mediumKind: "item",
+      maxLinks: 1
+    });
+
+    expect(pipe.subtype).toBe("pipe");
+    expect(pipe.placementKind).toBe("linear");
+    expect(pipe.ports[0]).toMatchObject({
+      side: "west",
+      offset: 0.5,
+      mediumKind: "fluid",
+      maxLinks: 1
+    });
+
+    expect(splitter.subtype).toBe("logistics-building");
+    expect(splitter.plannerCategory).toBe("logistics");
+    expect(splitter.sourceSubCategoryLabel).toBe("Flow Control");
   });
 });

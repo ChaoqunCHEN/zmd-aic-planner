@@ -154,7 +154,7 @@ export function createPlannerCommands(
         return;
       }
 
-      const result = connectPorts(state.plan, {
+      const result = connectPorts(state.plan, state.dataset, {
         ...input,
         edgeId: input.edgeId ?? createEdgeId(input)
       });

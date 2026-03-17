@@ -2,6 +2,7 @@ import type { DatasetBundle, PortDefinition } from "../types";
 import type { Diagnostic } from "../diagnostics/types";
 import { createDiagnosticId } from "../diagnostics/types";
 import type { PlanDocument, PlanEdge } from "../plan/document";
+import { getNodePortSide, getTouchingSides } from "../plan/geometry";
 
 export type ConnectionState = {
   diagnostics: Diagnostic[];
@@ -39,6 +40,8 @@ export function buildConnectionState(plan: PlanDocument, dataset: DatasetBundle)
   let index = 0;
 
   for (const edge of Object.values(plan.edges)) {
+    const sourceNode = plan.nodes[edge.sourceNodeId];
+    const targetNode = plan.nodes[edge.targetNodeId];
     const sourcePort = getPortDefinition(dataset, plan, edge.sourceNodeId, edge.sourcePortId);
     const targetPort = getPortDefinition(dataset, plan, edge.targetNodeId, edge.targetPortId);
 
@@ -48,7 +51,7 @@ export function buildConnectionState(plan: PlanDocument, dataset: DatasetBundle)
     outboundByPort.set(sourceKey, [...(outboundByPort.get(sourceKey) ?? []), edge]);
     inboundByPort.set(targetKey, [...(inboundByPort.get(targetKey) ?? []), edge]);
 
-    if (!sourcePort || !targetPort) {
+    if (!sourceNode || !targetNode || !sourcePort || !targetPort) {
       diagnostics.push({
         id: createDiagnosticId("connection.port-missing", index++),
         severity: "error",
@@ -76,6 +79,22 @@ export function buildConnectionState(plan: PlanDocument, dataset: DatasetBundle)
       continue;
     }
 
+    if (sourcePort.mediumKind !== targetPort.mediumKind) {
+      diagnostics.push({
+        id: createDiagnosticId("connection.medium-mismatch", index++),
+        severity: "error",
+        code: "connection.medium-mismatch",
+        message: `Edge "${edge.id}" links ports with incompatible transport media.`,
+        subjectRefs: [
+          { kind: "edge", edgeId: edge.id },
+          { kind: "port", nodeId: edge.sourceNodeId, portId: edge.sourcePortId },
+          { kind: "port", nodeId: edge.targetNodeId, portId: edge.targetPortId }
+        ],
+        remediation: "Connect item, fluid, and logistics ports only to matching media."
+      });
+      continue;
+    }
+
     const compatible = sourcePort.resourceIds.some((resourceId) =>
       targetPort.resourceIds.includes(resourceId)
     );
@@ -92,6 +111,46 @@ export function buildConnectionState(plan: PlanDocument, dataset: DatasetBundle)
           { kind: "port", nodeId: edge.targetNodeId, portId: edge.targetPortId }
         ],
         remediation: "Reconnect the edge between ports that support the same resource."
+      });
+      continue;
+    }
+
+    const touchingSides = getTouchingSides(sourceNode, targetNode);
+
+    if (!touchingSides) {
+      diagnostics.push({
+        id: createDiagnosticId("connection.non-adjacent", index++),
+        severity: "error",
+        code: "connection.non-adjacent",
+        message: `Edge "${edge.id}" links nodes that are not touching on the grid.`,
+        subjectRefs: [
+          { kind: "edge", edgeId: edge.id },
+          { kind: "node", nodeId: edge.sourceNodeId },
+          { kind: "node", nodeId: edge.targetNodeId }
+        ],
+        remediation: "Add explicit belt/pipe/logistics nodes so each edge connects touching neighbors."
+      });
+      continue;
+    }
+
+    const sourceSide = getNodePortSide(sourceNode, sourcePort);
+    const targetSide = getNodePortSide(targetNode, targetPort);
+
+    if (
+      sourceSide !== touchingSides.sourceSide ||
+      targetSide !== touchingSides.targetSide
+    ) {
+      diagnostics.push({
+        id: createDiagnosticId("connection.invalid-side", index++),
+        severity: "error",
+        code: "connection.invalid-side",
+        message: `Edge "${edge.id}" uses ports on sides that do not face each other.`,
+        subjectRefs: [
+          { kind: "edge", edgeId: edge.id },
+          { kind: "port", nodeId: edge.sourceNodeId, portId: edge.sourcePortId },
+          { kind: "port", nodeId: edge.targetNodeId, portId: edge.targetPortId }
+        ],
+        remediation: "Rotate or reposition nodes so connected ports are on touching opposing sides."
       });
       continue;
     }

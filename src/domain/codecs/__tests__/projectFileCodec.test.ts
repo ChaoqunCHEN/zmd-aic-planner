@@ -42,7 +42,27 @@ function buildProjectPlan() {
     sitePresetId: "site.training-yard",
     projectName: "Codec fixture"
   });
-  const smelter = placeNode(basePlan, dataset, {
+  const intake = placeNode(basePlan, dataset, {
+    nodeId: "node-intake",
+    catalogId: "terminal.ore-intake",
+    position: { x: 0, y: 4 }
+  });
+  expect(intake.ok).toBe(true);
+  if (!intake.ok) {
+    throw new Error("Expected intake placement to succeed");
+  }
+
+  const oreBelt = placeNode(intake.plan, dataset, {
+    nodeId: "node-ore-belt",
+    catalogId: "belt.basic-conveyor",
+    position: { x: 1, y: 4 }
+  });
+  expect(oreBelt.ok).toBe(true);
+  if (!oreBelt.ok) {
+    throw new Error("Expected ore belt placement to succeed");
+  }
+
+  const smelter = placeNode(oreBelt.plan, dataset, {
     nodeId: "node-smelter",
     catalogId: "machine.basic-smelter",
     position: { x: 2, y: 4 }
@@ -69,10 +89,17 @@ function buildProjectPlan() {
       }
     },
     edges: {
-      "edge-placeholder": {
-        id: "edge-placeholder",
-        sourceNodeId: "node-smelter",
-        sourcePortId: "ingot-out",
+      "edge-intake-to-belt": {
+        id: "edge-intake-to-belt",
+        sourceNodeId: "node-intake",
+        sourcePortId: "ore-out",
+        targetNodeId: "node-ore-belt",
+        targetPortId: "belt-in"
+      },
+      "edge-belt-to-smelter": {
+        id: "edge-belt-to-smelter",
+        sourceNodeId: "node-ore-belt",
+        sourcePortId: "belt-out",
         targetNodeId: "node-smelter",
         targetPortId: "ore-in"
       }
@@ -97,11 +124,15 @@ describe("project file codec", () => {
         "node-smelter": {
           modeId: "mode.basic-smelter.efficient",
           position: { x: 2, y: 4 }
+        },
+        "node-ore-belt": {
+          kind: "logistics",
+          position: { x: 1, y: 4 }
         }
       },
       edges: {
-        "edge-placeholder": {
-          sourcePortId: "ingot-out",
+        "edge-belt-to-smelter": {
+          sourcePortId: "belt-out",
           targetPortId: "ore-in"
         }
       }

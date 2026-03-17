@@ -7,24 +7,43 @@
       "width": 2
     },
     "id": "machine.basic-smelter",
+    "icon": {
+      "alt": "Basic Smelter icon",
+      "kind": "icon",
+      "mimeType": "image/svg+xml",
+      "path": "game-data/assets/curated/placeables/machine.basic-smelter.svg"
+    },
     "kind": "placeable",
     "name": "Basic Smelter",
     "nameZhHans": "基础冶炼炉",
+    "plannerCategory": "machines",
+    "availabilityStatus": "validated",
+    "placementKind": "area",
+    "sourceCategoryLabel": "Production",
+    "sourceSubCategoryLabel": "Smelting",
     "placeableClass": "area",
     "ports": [
       {
         "flow": "output",
         "id": "ingot-out",
+        "maxLinks": 1,
+        "mediumKind": "item",
+        "offset": 0.5,
         "resourceIds": [
           "resource.iron-ingot"
-        ]
+        ],
+        "side": "east"
       },
       {
         "flow": "input",
         "id": "ore-in",
+        "maxLinks": 1,
+        "mediumKind": "item",
+        "offset": 0.5,
         "resourceIds": [
           "resource.iron-ore"
-        ]
+        ],
+        "side": "west"
       }
     ],
     "recipeIds": [
@@ -88,7 +107,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -133,7 +157,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -178,7 +207,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -223,7 +257,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -268,7 +307,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -313,7 +357,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -358,7 +407,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -403,7 +457,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -448,7 +507,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -493,7 +557,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -538,7 +607,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -583,7 +657,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -628,7 +707,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -673,7 +757,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -718,7 +807,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -763,7 +857,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -808,7 +907,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -853,7 +957,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -898,7 +1007,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -943,7 +1057,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -988,7 +1107,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -1033,7 +1157,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -1078,7 +1207,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -1123,7 +1257,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -1168,7 +1307,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -1213,7 +1357,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -1258,7 +1407,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -1303,7 +1457,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -1348,7 +1507,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -1393,7 +1557,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -1438,7 +1607,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -1483,7 +1657,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -1528,7 +1707,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -1573,7 +1757,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -1618,7 +1807,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -1663,7 +1857,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -1708,7 +1907,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -1753,7 +1957,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -1798,7 +2007,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -1843,7 +2057,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -1888,7 +2107,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -1933,7 +2157,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -1978,7 +2207,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -2023,7 +2257,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -2068,7 +2307,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -2113,7 +2357,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -2158,7 +2407,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -2203,7 +2457,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -2248,7 +2507,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -2293,7 +2557,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -2338,7 +2607,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -2383,7 +2657,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -2428,7 +2707,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -2473,7 +2757,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -2518,7 +2807,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -2563,7 +2857,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -2608,7 +2907,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -2653,7 +2957,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -2698,7 +3007,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -2743,7 +3057,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -2788,7 +3107,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -2833,7 +3157,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -2878,7 +3207,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -2923,7 +3257,12 @@
       "设备",
       "skland"
     ],
-    "worldCategory": "placeable"
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
   },
   {
     "footprint": {
@@ -2968,6 +3307,198 @@
       "设备",
       "skland"
     ],
+    "worldCategory": "placeable",
+    "plannerCategory": "machines",
+    "availabilityStatus": "reference-only",
+    "placementKind": "area",
+    "sourceCategoryLabel": "设备",
+    "sourceSubCategoryLabel": "设备"
+  },
+  {
+    "description": "Starter belt segment used for validated linear routing interactions.",
+    "footprint": {
+      "height": 1,
+      "width": 1
+    },
+    "id": "belt.basic-conveyor",
+    "icon": {
+      "alt": "Basic Conveyor icon",
+      "kind": "icon",
+      "mimeType": "image/svg+xml",
+      "path": "game-data/assets/curated/placeables/belt.basic-conveyor.svg"
+    },
+    "kind": "placeable",
+    "name": "Basic Conveyor",
+    "nameZhHans": "基础传送带",
+    "plannerCategory": "logistics",
+    "availabilityStatus": "validated",
+    "placementKind": "linear",
+    "sourceCategoryLabel": "Conveyance",
+    "sourceSubCategoryLabel": "Belts",
+    "placeableClass": "linear",
+    "ports": [
+      {
+        "flow": "input",
+        "id": "belt-in",
+        "maxLinks": 1,
+        "mediumKind": "item",
+        "offset": 0.5,
+        "resourceIds": [
+          "resource.iron-ore",
+          "resource.iron-ingot"
+        ],
+        "side": "west"
+      },
+      {
+        "flow": "output",
+        "id": "belt-out",
+        "maxLinks": 1,
+        "mediumKind": "item",
+        "offset": 0.5,
+        "resourceIds": [
+          "resource.iron-ore",
+          "resource.iron-ingot"
+        ],
+        "side": "east"
+      }
+    ],
+    "source": {
+      "sourceConfidence": "verified",
+      "sourceSystem": "curated"
+    },
+    "subtype": "belt",
+    "tags": [
+      "logistics",
+      "belt"
+    ],
+    "worldCategory": "placeable"
+  },
+  {
+    "description": "Starter pipe segment for validated fluid-style linear routing coverage.",
+    "footprint": {
+      "height": 1,
+      "width": 1
+    },
+    "id": "pipe.basic-pipe",
+    "icon": {
+      "alt": "Basic Pipe icon",
+      "kind": "icon",
+      "mimeType": "image/svg+xml",
+      "path": "game-data/assets/curated/placeables/pipe.basic-pipe.svg"
+    },
+    "kind": "placeable",
+    "name": "Basic Pipe",
+    "nameZhHans": "基础管道",
+    "plannerCategory": "logistics",
+    "availabilityStatus": "validated",
+    "placementKind": "linear",
+    "sourceCategoryLabel": "Conveyance",
+    "sourceSubCategoryLabel": "Pipes",
+    "placeableClass": "linear",
+    "ports": [
+      {
+        "flow": "input",
+        "id": "pipe-in",
+        "maxLinks": 1,
+        "mediumKind": "fluid",
+        "offset": 0.5,
+        "resourceIds": [
+          "resource.iron-ore"
+        ],
+        "side": "west"
+      },
+      {
+        "flow": "output",
+        "id": "pipe-out",
+        "maxLinks": 1,
+        "mediumKind": "fluid",
+        "offset": 0.5,
+        "resourceIds": [
+          "resource.iron-ore"
+        ],
+        "side": "east"
+      }
+    ],
+    "source": {
+      "sourceConfidence": "verified",
+      "sourceSystem": "curated"
+    },
+    "subtype": "pipe",
+    "tags": [
+      "logistics",
+      "pipe"
+    ],
+    "worldCategory": "placeable"
+  },
+  {
+    "description": "Validated logistics helper for branch/split interactions.",
+    "footprint": {
+      "height": 1,
+      "width": 1
+    },
+    "id": "logistics-building.compact-splitter",
+    "icon": {
+      "alt": "Compact Splitter icon",
+      "kind": "icon",
+      "mimeType": "image/svg+xml",
+      "path": "game-data/assets/curated/placeables/logistics-building.compact-splitter.svg"
+    },
+    "kind": "placeable",
+    "name": "Compact Splitter",
+    "nameZhHans": "紧凑分流器",
+    "plannerCategory": "logistics",
+    "availabilityStatus": "validated",
+    "placementKind": "area",
+    "sourceCategoryLabel": "Conveyance",
+    "sourceSubCategoryLabel": "Flow Control",
+    "placeableClass": "area",
+    "ports": [
+      {
+        "flow": "input",
+        "id": "splitter-in",
+        "maxLinks": 1,
+        "mediumKind": "item",
+        "offset": 0.5,
+        "resourceIds": [
+          "resource.iron-ore",
+          "resource.iron-ingot"
+        ],
+        "side": "west"
+      },
+      {
+        "flow": "output",
+        "id": "splitter-out-a",
+        "maxLinks": 1,
+        "mediumKind": "item",
+        "offset": 0.5,
+        "resourceIds": [
+          "resource.iron-ore",
+          "resource.iron-ingot"
+        ],
+        "side": "north"
+      },
+      {
+        "flow": "output",
+        "id": "splitter-out-b",
+        "maxLinks": 1,
+        "mediumKind": "item",
+        "offset": 0.5,
+        "resourceIds": [
+          "resource.iron-ore",
+          "resource.iron-ingot"
+        ],
+        "side": "east"
+      }
+    ],
+    "source": {
+      "sourceConfidence": "verified",
+      "sourceSystem": "curated"
+    },
+    "subtype": "logistics-building",
+    "tags": [
+      "logistics",
+      "splitter"
+    ],
     "worldCategory": "placeable"
   },
   {
@@ -2977,17 +3508,32 @@
       "width": 1
     },
     "id": "terminal.ingot-output",
+    "icon": {
+      "alt": "Ingot Output Terminal icon",
+      "kind": "icon",
+      "mimeType": "image/svg+xml",
+      "path": "game-data/assets/curated/placeables/terminal.ingot-output.svg"
+    },
     "kind": "placeable",
     "name": "Ingot Output Terminal",
     "nameZhHans": "锭材输出终端",
+    "plannerCategory": "utilities",
+    "availabilityStatus": "validated",
+    "placementKind": "area",
+    "sourceCategoryLabel": "Terminals",
+    "sourceSubCategoryLabel": "Output",
     "placeableClass": "area",
     "ports": [
       {
         "flow": "input",
         "id": "ingot-in",
+        "maxLinks": 1,
+        "mediumKind": "item",
+        "offset": 0.5,
         "resourceIds": [
           "resource.iron-ingot"
-        ]
+        ],
+        "side": "west"
       }
     ],
     "source": {
@@ -3008,17 +3554,32 @@
       "width": 1
     },
     "id": "terminal.ore-intake",
+    "icon": {
+      "alt": "Ore Intake Terminal icon",
+      "kind": "icon",
+      "mimeType": "image/svg+xml",
+      "path": "game-data/assets/curated/placeables/terminal.ore-intake.svg"
+    },
     "kind": "placeable",
     "name": "Ore Intake Terminal",
     "nameZhHans": "矿石输入终端",
+    "plannerCategory": "utilities",
+    "availabilityStatus": "validated",
+    "placementKind": "area",
+    "sourceCategoryLabel": "Terminals",
+    "sourceSubCategoryLabel": "Input",
     "placeableClass": "area",
     "ports": [
       {
         "flow": "output",
         "id": "ore-out",
+        "maxLinks": 1,
+        "mediumKind": "item",
+        "offset": 0.5,
         "resourceIds": [
           "resource.iron-ore"
-        ]
+        ],
+        "side": "east"
       }
     ],
     "source": {

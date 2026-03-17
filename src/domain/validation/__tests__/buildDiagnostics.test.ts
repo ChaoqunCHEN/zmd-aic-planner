@@ -46,7 +46,17 @@ describe("buildDiagnostics", () => {
       return;
     }
 
-    const smelter = placeNode(oreTerminal.plan, dataset, {
+    const oreBelt = placeNode(oreTerminal.plan, dataset, {
+      nodeId: "node-ore-belt",
+      catalogId: "belt.basic-conveyor",
+      position: { x: 1, y: 4 }
+    });
+    expect(oreBelt.ok).toBe(true);
+    if (!oreBelt.ok) {
+      return;
+    }
+
+    const smelter = placeNode(oreBelt.plan, dataset, {
       nodeId: "node-smelter",
       catalogId: "machine.basic-smelter",
       position: { x: 2, y: 4 }
@@ -56,7 +66,17 @@ describe("buildDiagnostics", () => {
       return;
     }
 
-    const outputTerminal = placeNode(smelter.plan, dataset, {
+    const ingotBelt = placeNode(smelter.plan, dataset, {
+      nodeId: "node-ingot-belt",
+      catalogId: "belt.basic-conveyor",
+      position: { x: 4, y: 4 }
+    });
+    expect(ingotBelt.ok).toBe(true);
+    if (!ingotBelt.ok) {
+      return;
+    }
+
+    const outputTerminal = placeNode(ingotBelt.plan, dataset, {
       nodeId: "node-ingot-out",
       catalogId: "terminal.ingot-output",
       position: { x: 5, y: 4 }
@@ -69,17 +89,31 @@ describe("buildDiagnostics", () => {
     const plan = {
       ...outputTerminal.plan,
       edges: {
-        "edge-ore": {
-          id: "edge-ore",
+        "edge-ore-a": {
+          id: "edge-ore-a",
           sourceNodeId: "node-ore-in",
           sourcePortId: "ore-out",
+          targetNodeId: "node-ore-belt",
+          targetPortId: "belt-in"
+        },
+        "edge-ore-b": {
+          id: "edge-ore-b",
+          sourceNodeId: "node-ore-belt",
+          sourcePortId: "belt-out",
           targetNodeId: "node-smelter",
           targetPortId: "ore-in"
         },
-        "edge-ingot": {
-          id: "edge-ingot",
+        "edge-ingot-a": {
+          id: "edge-ingot-a",
           sourceNodeId: "node-smelter",
           sourcePortId: "ingot-out",
+          targetNodeId: "node-ingot-belt",
+          targetPortId: "belt-in"
+        },
+        "edge-ingot-b": {
+          id: "edge-ingot-b",
+          sourceNodeId: "node-ingot-belt",
+          sourcePortId: "belt-out",
           targetNodeId: "node-ingot-out",
           targetPortId: "ingot-in"
         }
@@ -96,17 +130,7 @@ describe("buildDiagnostics", () => {
 
   it("emits invalid-link diagnostics for wrong flow direction and incompatible resources", () => {
     const basePlan = createPlan(dataset, { sitePresetId: "site.training-yard" });
-    const smelter = placeNode(basePlan, dataset, {
-      nodeId: "node-smelter",
-      catalogId: "machine.basic-smelter",
-      position: { x: 2, y: 4 }
-    });
-    expect(smelter.ok).toBe(true);
-    if (!smelter.ok) {
-      return;
-    }
-
-    const oreTerminal = placeNode(smelter.plan, dataset, {
+    const oreTerminal = placeNode(basePlan, dataset, {
       nodeId: "node-ore-in",
       catalogId: "terminal.ore-intake",
       position: { x: 0, y: 4 }
@@ -116,13 +140,33 @@ describe("buildDiagnostics", () => {
       return;
     }
 
+    const belt = placeNode(oreTerminal.plan, dataset, {
+      nodeId: "node-belt",
+      catalogId: "belt.basic-conveyor",
+      position: { x: 1, y: 4 }
+    });
+    expect(belt.ok).toBe(true);
+    if (!belt.ok) {
+      return;
+    }
+
+    const outputTerminal = placeNode(belt.plan, dataset, {
+      nodeId: "node-ingot-out",
+      catalogId: "terminal.ingot-output",
+      position: { x: 2, y: 4 }
+    });
+    expect(outputTerminal.ok).toBe(true);
+    if (!outputTerminal.ok) {
+      return;
+    }
+
     const wrongDirectionPlan = {
-      ...oreTerminal.plan,
+      ...outputTerminal.plan,
       edges: {
         "edge-invalid-direction": {
           id: "edge-invalid-direction",
-          sourceNodeId: "node-ore-in",
-          sourcePortId: "ore-out",
+          sourceNodeId: "node-belt",
+          sourcePortId: "belt-in",
           targetNodeId: "node-ore-in",
           targetPortId: "ore-out"
         }
@@ -130,14 +174,14 @@ describe("buildDiagnostics", () => {
     };
 
     const mismatchPlan = {
-      ...oreTerminal.plan,
+      ...outputTerminal.plan,
       edges: {
         "edge-resource-mismatch": {
           id: "edge-resource-mismatch",
-          sourceNodeId: "node-smelter",
-          sourcePortId: "ingot-out",
-          targetNodeId: "node-smelter",
-          targetPortId: "ore-in"
+          sourceNodeId: "node-ore-in",
+          sourcePortId: "ore-out",
+          targetNodeId: "node-ingot-out",
+          targetPortId: "ingot-in"
         }
       }
     };
@@ -150,12 +194,10 @@ describe("buildDiagnostics", () => {
     );
 
     expectDiagnosticCodes(wrongDirectionCodes, [
-      "connection.invalid-direction",
-      "connection.blocked-output"
+      "connection.invalid-direction"
     ]);
     expectDiagnosticCodes(mismatchCodes, [
-      "connection.resource-mismatch",
-      "connection.blocked-output"
+      "connection.resource-mismatch"
     ]);
   });
 

@@ -4,10 +4,11 @@ import { createDiagnosticId } from "../diagnostics/types";
 import type { PlanDocument } from "../plan/document";
 import {
   findBlockedZoneOverlap,
+  getNodeOccupiedCells,
   getNodeRect,
   isRectInBuildableZone,
   isRectWithinSite,
-  rectsOverlap
+  pointKey
 } from "../plan/geometry";
 
 export function runPlacementValidation(plan: PlanDocument, dataset: DatasetBundle): Diagnostic[] {
@@ -67,7 +68,10 @@ export function runPlacementValidation(plan: PlanDocument, dataset: DatasetBundl
         continue;
       }
 
-      if (!rectsOverlap(getNodeRect(left), getNodeRect(right))) {
+      const leftCells = new Set(getNodeOccupiedCells(left).map(pointKey));
+      const hasOverlap = getNodeOccupiedCells(right).some((cell) => leftCells.has(pointKey(cell)));
+
+      if (!hasOverlap) {
         continue;
       }
 

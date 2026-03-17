@@ -38,7 +38,7 @@
         "catalogId": "terminal.ore-intake",
         "kind": "io",
         "position": {
-          "x": 0,
+          "x": 1,
           "y": 4
         },
         "footprint": {
@@ -53,7 +53,7 @@
         "catalogId": "terminal.ingot-output",
         "kind": "io",
         "position": {
-          "x": 5,
+          "x": 4,
           "y": 4
         },
         "footprint": {

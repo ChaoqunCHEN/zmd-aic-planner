@@ -2,7 +2,7 @@ import { buildDiagnostics } from "../diagnostics/buildDiagnostics";
 import type { Diagnostic } from "../diagnostics/types";
 import type { DatasetBundle } from "../types";
 import type { PlanDocument } from "../plan/document";
-import { buildGraph } from "./buildGraph";
+import { buildGraph, type AnalysisGraphNode } from "./buildGraph";
 
 export type Bottleneck = {
   code: "bottleneck.external-cap";
@@ -25,6 +25,178 @@ function intersectResourceId(sourceIds: string[], targetIds: string[]) {
   return sourceIds.find((resourceId) => targetIds.includes(resourceId)) ?? null;
 }
 
+function isExternalOutputTerminal(node: AnalysisGraphNode) {
+  return node.item.subtype === "terminal" && node.item.ports.every((port) => port.flow === "output");
+}
+
+function getNominalMachineInputDemand(
+  node: AnalysisGraphNode,
+  resourceId: string,
+  dataset: DatasetBundle
+) {
+  const recipeId = node.item.recipeIds?.[0];
+  const recipe = recipeId ? dataset.recipes[recipeId] : undefined;
+
+  if (!recipe) {
+    return 0;
+  }
+
+  const throughputMultiplier = node.node.modeId
+    ? (dataset.machineModes[node.node.modeId]?.throughputMultiplier ?? 1)
+    : 1;
+  const baseRate = (60 / recipe.durationSeconds) * throughputMultiplier;
+
+  return recipe.inputs
+    .filter((input) => input.resourceId === resourceId)
+    .reduce((sum, input) => sum + input.amount * baseRate, 0);
+}
+
+function estimateDownstreamDemand(
+  nodeId: string,
+  resourceId: string,
+  graph: ReturnType<typeof buildGraph>,
+  dataset: DatasetBundle,
+  visited = new Set<string>()
+): number {
+  if (visited.has(nodeId)) {
+    return 0;
+  }
+
+  visited.add(nodeId);
+  const node = graph.nodes[nodeId];
+  if (!node) {
+    return 0;
+  }
+
+  let demand = getNominalMachineInputDemand(node, resourceId, dataset);
+
+  for (const edge of node.outgoingEdges) {
+    const sourcePort = node.item.ports.find((port) => port.id === edge.sourcePortId);
+    const targetNode = graph.nodes[edge.targetNodeId];
+    const targetPort = targetNode?.item.ports.find((port) => port.id === edge.targetPortId);
+
+    if (
+      !sourcePort ||
+      sourcePort.flow !== "output" ||
+      !targetNode ||
+      !targetPort ||
+      !sourcePort.resourceIds.includes(resourceId) ||
+      !targetPort.resourceIds.includes(resourceId)
+    ) {
+      continue;
+    }
+
+    demand += estimateDownstreamDemand(
+      targetNode.node.id,
+      resourceId,
+      graph,
+      dataset,
+      visited
+    );
+  }
+
+  return demand;
+}
+
+function countOutgoingEdgesForResource(
+  sourceNode: AnalysisGraphNode,
+  resourceId: string,
+  graph: ReturnType<typeof buildGraph>
+) {
+  return sourceNode.outgoingEdges.filter((edge) => {
+    const sourcePort = sourceNode.item.ports.find((port) => port.id === edge.sourcePortId);
+    const targetNode = graph.nodes[edge.targetNodeId];
+    const targetPort = targetNode?.item.ports.find((port) => port.id === edge.targetPortId);
+
+    if (!sourcePort || !targetPort) {
+      return false;
+    }
+
+    return (
+      sourcePort.flow === "output" &&
+      sourcePort.resourceIds.includes(resourceId) &&
+      targetPort.resourceIds.includes(resourceId)
+    );
+  }).length;
+}
+
+function hasUpstreamCappedExternalSource(
+  nodeId: string,
+  resourceId: string,
+  graph: ReturnType<typeof buildGraph>,
+  plan: PlanDocument,
+  visited = new Set<string>()
+): boolean {
+  if (visited.has(nodeId)) {
+    return false;
+  }
+
+  visited.add(nodeId);
+  const node = graph.nodes[nodeId];
+
+  if (!node) {
+    return false;
+  }
+
+  if (
+    isExternalOutputTerminal(node) &&
+    plan.siteConfig.externalInputCaps[resourceId] !== undefined
+  ) {
+    return true;
+  }
+
+  for (const edge of node.incomingEdges) {
+    const sourceNode = graph.nodes[edge.sourceNodeId];
+    const sourcePort = sourceNode?.item.ports.find((port) => port.id === edge.sourcePortId);
+    const targetPort = node.item.ports.find((port) => port.id === edge.targetPortId);
+
+    if (
+      !sourceNode ||
+      !sourcePort ||
+      !targetPort ||
+      !sourcePort.resourceIds.includes(resourceId) ||
+      !targetPort.resourceIds.includes(resourceId)
+    ) {
+      continue;
+    }
+
+    if (hasUpstreamCappedExternalSource(sourceNode.node.id, resourceId, graph, plan, visited)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function getOfferedRateForEdge(
+  edge: { sourcePortId: string },
+  resourceId: string,
+  sourceNode: AnalysisGraphNode,
+  targetNode: AnalysisGraphNode,
+  machineOutputRates: Map<string, ResourceRates>,
+  machineInputRates: Map<string, ResourceRates>,
+  plan: PlanDocument,
+  graph: ReturnType<typeof buildGraph>,
+  dataset: DatasetBundle
+) {
+  let sourceSupply = machineOutputRates.get(sourceNode.node.id)?.[resourceId] ?? 0;
+
+  if (isExternalOutputTerminal(sourceNode)) {
+    const explicitCap = plan.siteConfig.externalInputCaps[resourceId];
+
+    if (explicitCap !== undefined) {
+      sourceSupply = explicitCap;
+    } else {
+      sourceSupply = targetNode.item.subtype === "machine"
+        ? machineInputRates.get(targetNode.node.id)?.[resourceId] ?? 0
+        : estimateDownstreamDemand(targetNode.node.id, resourceId, graph, dataset);
+    }
+  }
+
+  const sourceOutEdges = countOutgoingEdgesForResource(sourceNode, resourceId, graph);
+  return sourceSupply / Math.max(1, sourceOutEdges);
+}
+
 export function runAnalysis(plan: PlanDocument, dataset: DatasetBundle): AnalysisResult {
   const diagnostics = buildDiagnostics(plan, dataset);
   const graph = buildGraph(plan, dataset);
@@ -32,6 +204,7 @@ export function runAnalysis(plan: PlanDocument, dataset: DatasetBundle): Analysi
   const machineRequiredInputRates = new Map<string, ResourceRates>();
   const machineOutputRates = new Map<string, ResourceRates>();
   const baseNodeRates = new Map<string, number>();
+  const recordedBottlenecks = new Set<string>();
   const nodeRates: Record<string, number> = {};
   const edgeRates: Record<string, number> = {};
   const bottlenecks: Bottleneck[] = [];
@@ -47,9 +220,55 @@ export function runAnalysis(plan: PlanDocument, dataset: DatasetBundle): Analysi
     const recipe = recipeId ? dataset.recipes[recipeId] : undefined;
 
     if (!recipe) {
+      const passthroughInputs: ResourceRates = {};
+      const passthroughOutputs: ResourceRates = {};
+
+      for (const edge of graphNode.incomingEdges) {
+        const sourceNode = graph.nodes[edge.sourceNodeId];
+        if (!sourceNode) {
+          continue;
+        }
+
+        const sourcePort = sourceNode.item.ports.find((candidate) => candidate.id === edge.sourcePortId);
+        const targetPort = item.ports.find((candidate) => candidate.id === edge.targetPortId);
+
+        if (!sourcePort || !targetPort) {
+          continue;
+        }
+
+        const resourceId = intersectResourceId(sourcePort.resourceIds, targetPort.resourceIds);
+        if (!resourceId) {
+          continue;
+        }
+
+        passthroughInputs[resourceId] =
+          (passthroughInputs[resourceId] ?? 0) +
+          getOfferedRateForEdge(
+            edge,
+            resourceId,
+            sourceNode,
+            graphNode,
+            machineOutputRates,
+            machineInputRates,
+            plan,
+            graph,
+            dataset
+          );
+      }
+
+      for (const [resourceId, suppliedRate] of Object.entries(passthroughInputs)) {
+        if (
+          item.ports.some(
+            (port) => port.flow === "output" && port.resourceIds.includes(resourceId)
+          )
+        ) {
+          passthroughOutputs[resourceId] = suppliedRate;
+        }
+      }
+
       baseNodeRates.set(nodeId, 0);
-      machineInputRates.set(nodeId, {});
-      machineOutputRates.set(nodeId, {});
+      machineInputRates.set(nodeId, passthroughInputs);
+      machineOutputRates.set(nodeId, passthroughOutputs);
       continue;
     }
 
@@ -90,21 +309,17 @@ export function runAnalysis(plan: PlanDocument, dataset: DatasetBundle): Analysi
             continue;
           }
 
-          let sourceSupply = machineOutputRates.get(sourceNode.node.id)?.[resourceId] ?? 0;
-
-          const sourceIsExternalTerminal =
-            sourceNode.item.subtype === "terminal" &&
-            sourceNode.item.ports.every((candidate) => candidate.flow === "output");
-
-          if (sourceIsExternalTerminal) {
-            sourceSupply = plan.siteConfig.externalInputCaps[resourceId] ?? Number.POSITIVE_INFINITY;
-          }
-
-          const outDegree = Math.max(
-            1,
-            sourceNode.outgoingEdges.filter((candidate) => candidate.sourcePortId === edge.sourcePortId).length
+          suppliedRate += getOfferedRateForEdge(
+            edge,
+            resourceId,
+            sourceNode,
+            graphNode,
+            machineOutputRates,
+            machineInputRates,
+            plan,
+            graph,
+            dataset
           );
-          suppliedRate += sourceSupply / outDegree;
         }
       }
 
@@ -113,6 +328,22 @@ export function runAnalysis(plan: PlanDocument, dataset: DatasetBundle): Analysi
       requiredInputs[input.resourceId] = requiredRate;
       machineRequiredInputRates.set(nodeId, requiredInputs);
       nodeRatio = Math.min(nodeRatio, requiredRate === 0 ? 1 : suppliedRate / requiredRate);
+
+      const bottleneckKey = `${nodeId}:${input.resourceId}`;
+      if (
+        requiredRate > suppliedRate &&
+        !recordedBottlenecks.has(bottleneckKey) &&
+        hasUpstreamCappedExternalSource(nodeId, input.resourceId, graph, plan)
+      ) {
+        bottlenecks.push({
+          code: "bottleneck.external-cap",
+          message: `External ${dataset.resources[input.resourceId]?.name ?? input.resourceId} supply limits node "${nodeId}".`,
+          resourceId: input.resourceId,
+          nodeId,
+          limitedRate: Math.max(0, suppliedRate)
+        });
+        recordedBottlenecks.add(bottleneckKey);
+      }
     }
 
     if (!Number.isFinite(nodeRatio)) {
@@ -151,27 +382,17 @@ export function runAnalysis(plan: PlanDocument, dataset: DatasetBundle): Analysi
       continue;
     }
 
-    const sourceIsExternalTerminal =
-      sourceNode.item.subtype === "terminal" &&
-      sourceNode.item.ports.every((port) => port.flow === "output");
-
-    let sourceSupply = machineOutputRates.get(sourceNode.node.id)?.[resourceId] ?? 0;
-    if (sourceIsExternalTerminal) {
-      const explicitCap = plan.siteConfig.externalInputCaps[resourceId];
-
-      if (explicitCap !== undefined) {
-        sourceSupply = explicitCap;
-      } else {
-        sourceSupply = targetNode.item.subtype === "machine"
-          ? machineInputRates.get(targetNode.node.id)?.[resourceId] ?? 0
-          : 0;
-      }
-    }
-
-    const sourceOutEdges = sourceNode.outgoingEdges.filter(
-      (candidate) => candidate.sourcePortId === edge.sourcePortId
+    const sourceOffered = getOfferedRateForEdge(
+      edge,
+      resourceId,
+      sourceNode,
+      targetNode,
+      machineOutputRates,
+      machineInputRates,
+      plan,
+      graph,
+      dataset
     );
-    const sourceOffered = sourceSupply / Math.max(1, sourceOutEdges.length);
 
     let targetDemand = Number.POSITIVE_INFINITY;
     if (targetNode.item.subtype === "machine") {
@@ -202,30 +423,17 @@ export function runAnalysis(plan: PlanDocument, dataset: DatasetBundle): Analysi
         continue;
       }
 
-      const candidateIsExternalTerminal =
-        candidateSourceNode.item.subtype === "terminal" &&
-        candidateSourceNode.item.ports.every((port) => port.flow === "output");
-
-      let candidateSupply =
-        machineOutputRates.get(candidateSourceNode.node.id)?.[candidateResourceId] ?? 0;
-
-      if (candidateIsExternalTerminal) {
-        const candidateCap = plan.siteConfig.externalInputCaps[candidateResourceId];
-        candidateSupply =
-          candidateCap ??
-          (targetNode.item.subtype === "machine"
-            ? machineInputRates.get(targetNode.node.id)?.[candidateResourceId] ?? 0
-            : 0);
-      }
-
-      const candidateOutDegree = Math.max(
-        1,
-        candidateSourceNode.outgoingEdges.filter(
-          (outgoingEdge) => outgoingEdge.sourcePortId === candidate.sourcePortId
-        ).length
+      totalTargetOffered += getOfferedRateForEdge(
+        candidate,
+        candidateResourceId,
+        candidateSourceNode,
+        targetNode,
+        machineOutputRates,
+        machineInputRates,
+        plan,
+        graph,
+        dataset
       );
-
-      totalTargetOffered += candidateSupply / candidateOutDegree;
     }
 
     const scale =
@@ -234,24 +442,6 @@ export function runAnalysis(plan: PlanDocument, dataset: DatasetBundle): Analysi
         : Math.min(1, targetDemand / totalTargetOffered);
 
     edgeRates[edge.id] = sourceOffered * scale;
-
-    if (
-      sourceIsExternalTerminal &&
-      plan.siteConfig.externalInputCaps[resourceId] !== undefined &&
-      targetNode.item.subtype === "machine"
-    ) {
-      const targetRequired = machineRequiredInputRates.get(targetNode.node.id)?.[resourceId] ?? 0;
-
-      if (targetRequired > edgeRates[edge.id]) {
-        bottlenecks.push({
-          code: "bottleneck.external-cap",
-          message: `External ${dataset.resources[resourceId]?.name ?? resourceId} supply limits node "${targetNode.node.id}".`,
-          resourceId,
-          nodeId: targetNode.node.id,
-          limitedRate: edgeRates[edge.id]
-        });
-      }
-    }
   }
 
   for (const graphNode of Object.values(graph.nodes)) {

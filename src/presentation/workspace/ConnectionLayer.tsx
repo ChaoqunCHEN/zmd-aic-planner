@@ -1,7 +1,6 @@
 import type { PortDefinition } from "../../domain/types";
-import { getRotatedFootprintSize } from "../../domain/plan/geometry";
 import type { PlanEdge, PlanNode } from "../../domain/plan/document";
-import { GRID_CELL_GAP, GRID_CELL_SIZE } from "./GridLayer";
+import { getNodePortAnchor } from "./workspaceLayout";
 import styles from "./ConnectionLayer.module.css";
 
 type ConnectionLayerProps = {
@@ -12,21 +11,6 @@ type ConnectionLayerProps = {
   width?: number;
   height?: number;
 };
-
-function getPortAnchor(
-  node: PlanNode,
-  port: PortDefinition,
-  portIndex: number,
-  portCount: number
-) {
-  const footprint = getRotatedFootprintSize(node.footprint, node.rotation);
-  const width = footprint.width * GRID_CELL_SIZE + (footprint.width - 1) * GRID_CELL_GAP;
-  const height = footprint.height * GRID_CELL_SIZE + (footprint.height - 1) * GRID_CELL_GAP;
-  const x = node.position.x * (GRID_CELL_SIZE + GRID_CELL_GAP) + (port.flow === "input" ? 0 : width);
-  const y = node.position.y * (GRID_CELL_SIZE + GRID_CELL_GAP) + ((portIndex + 1) / (portCount + 1)) * height;
-
-  return { x, y };
-}
 
 export function ConnectionLayer({
   nodes,
@@ -66,8 +50,8 @@ export function ConnectionLayer({
           return null;
         }
 
-        const start = getPortAnchor(sourceNode, sourcePort, sourcePortIndex, sourcePorts.length);
-        const end = getPortAnchor(targetNode, targetPort, targetPortIndex, targetPorts.length);
+        const start = getNodePortAnchor(sourceNode, sourcePort);
+        const end = getNodePortAnchor(targetNode, targetPort);
 
         return (
           <g key={edge.id}>
