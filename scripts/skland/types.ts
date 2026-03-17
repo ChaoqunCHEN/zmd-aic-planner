@@ -29,6 +29,11 @@ export type SklandDetailRecord = {
   illustrationUrl?: string;
   typeMainId: string;
   typeSubId: string;
+  inGameTypeId?: string;
+  inGameTypeLabel?: string;
+  inGameRarityLabel?: string;
+  inGameQualityLabel?: string;
+  usageHints: string[];
   raw: unknown;
 };
 

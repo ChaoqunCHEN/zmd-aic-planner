@@ -103,6 +103,121 @@ function pickString(record: Record<string, unknown>, keys: string[]) {
   return undefined;
 }
 
+function normalizeLabel(value: string | undefined) {
+  if (!value) {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function getFilterTagValue(input: {
+  tree: unknown;
+  groupId: string;
+  selectedId: string | undefined;
+}) {
+  if (!input.selectedId || !Array.isArray(input.tree)) {
+    return undefined;
+  }
+
+  const group = input.tree
+    .map((entry) => asRecord(entry))
+    .find((entry) => entry?.id === input.groupId);
+  const children = Array.isArray(group?.children) ? group.children : [];
+
+  return children
+    .map((entry) => asRecord(entry))
+    .find((entry) => entry?.id === input.selectedId);
+}
+
+function readSelectedTagId(brief: Record<string, unknown> | undefined, groupId: string) {
+  const subTypeList = Array.isArray(brief?.subTypeList) ? brief?.subTypeList : [];
+  const selected = subTypeList
+    .map((entry) => asRecord(entry))
+    .find((entry) => entry?.subTypeId === groupId);
+
+  return pickString(selected ?? {}, ["value"]);
+}
+
+function collectTextFragments(input: unknown, output: string[], parentKey?: string) {
+  if (typeof input === "string") {
+    if (parentKey === "text") {
+      const normalized = normalizeLabel(input);
+      if (normalized) {
+        output.push(normalized);
+      }
+    }
+    return;
+  }
+
+  if (Array.isArray(input)) {
+    input.forEach((entry) => collectTextFragments(entry, output, parentKey));
+    return;
+  }
+
+  const record = asRecord(input);
+  if (!record) {
+    return;
+  }
+
+  if (record.kind === "text") {
+    collectTextFragments(record.text, output);
+  }
+
+  if (record.kind === "entry") {
+    return;
+  }
+
+  Object.entries(record).forEach(([key, value]) => collectTextFragments(value, output, key));
+}
+
+function extractUsageHints(document: unknown) {
+  const docRecord = asRecord(document);
+  const widgetCommonMap = asRecord(docRecord?.widgetCommonMap);
+  const documentMap = asRecord(docRecord?.documentMap);
+
+  if (!widgetCommonMap || !documentMap) {
+    return [];
+  }
+
+  const rawHints: string[] = [];
+
+  for (const widget of Object.values(widgetCommonMap)) {
+    const widgetRecord = asRecord(widget);
+    const tabDataMap = asRecord(widgetRecord?.tabDataMap);
+    if (!tabDataMap) {
+      continue;
+    }
+
+    for (const tabData of Object.values(tabDataMap)) {
+      const tabRecord = asRecord(tabData);
+      const contentId = pickString(tabRecord ?? {}, ["content"]);
+      if (!contentId) {
+        continue;
+      }
+
+      const contentDoc = documentMap[contentId];
+      const contentRecord = asRecord(contentDoc);
+      const blockIds = Array.isArray(contentRecord?.blockIds) ? contentRecord.blockIds : [];
+      const blockMap = asRecord(contentRecord?.blockMap);
+      if (!blockMap) {
+        continue;
+      }
+
+      for (const blockId of blockIds) {
+        if (typeof blockId !== "string") {
+          continue;
+        }
+
+        collectTextFragments(blockMap[blockId], rawHints);
+      }
+    }
+  }
+
+  return [...new Set(rawHints)].filter((hint) => hint.length >= 8);
+}
+
 export function unwrapSklandData(input: unknown) {
   const payload = asRecord(input);
   if (!payload) {
@@ -197,6 +312,26 @@ export function extractDetailRecord(
   const root = asRecord(input) ?? {};
   const item = asRecord(root.item) ?? root;
   const brief = asRecord(item.brief);
+  const subType = asRecord(item.subType);
+  const filterTagTree = Array.isArray(subType?.filterTagTree) ? subType.filterTagTree : [];
+  const inGameTypeId = readSelectedTagId(brief, "10244");
+  const inGameRarityId = readSelectedTagId(brief, "10000");
+  const inGameQualityId = readSelectedTagId(brief, "10307");
+  const inGameType = getFilterTagValue({
+    tree: filterTagTree,
+    groupId: "10244",
+    selectedId: inGameTypeId
+  });
+  const inGameRarity = getFilterTagValue({
+    tree: filterTagTree,
+    groupId: "10000",
+    selectedId: inGameRarityId
+  });
+  const inGameQuality = getFilterTagValue({
+    tree: filterTagTree,
+    groupId: "10307",
+    selectedId: inGameQualityId
+  });
 
   return {
     sourceItemId: fallback.sourceItemId,
@@ -208,6 +343,11 @@ export function extractDetailRecord(
     illustrationUrl: pickString(item, ["illustration", "card", "cover", "largeImage"]),
     typeMainId: fallback.typeMainId,
     typeSubId: fallback.typeSubId,
+    inGameTypeId,
+    inGameTypeLabel: normalizeLabel(pickString(inGameType ?? {}, ["name"])),
+    inGameRarityLabel: normalizeLabel(pickString(inGameRarity ?? {}, ["name"])),
+    inGameQualityLabel: normalizeLabel(pickString(inGameQuality ?? {}, ["name"])),
+    usageHints: extractUsageHints(item.document),
     raw: input
   };
 }

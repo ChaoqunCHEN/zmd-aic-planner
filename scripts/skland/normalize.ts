@@ -63,6 +63,27 @@ function inferPlannerCategory(subtype: PlaceableItem["subtype"]): PlaceableItem[
   return "machines";
 }
 
+function inferPlannerCategoryFromInGameType(
+  typeLabel: string | undefined,
+  subtype: PlaceableItem["subtype"]
+): PlaceableItem["plannerCategory"] {
+  const normalized = typeLabel?.trim();
+
+  if (normalized === "物流设备") {
+    return "logistics";
+  }
+
+  if (normalized === "仓储存区") {
+    return "storage";
+  }
+
+  if (normalized === "功能设备" || normalized === "电力供应") {
+    return "utilities";
+  }
+
+  return inferPlannerCategory(subtype);
+}
+
 export function normalizeEquipmentRecord(input: {
   discovery: SklandDiscoveryRecord;
   detail: SklandDetailRecord;
@@ -98,9 +119,14 @@ export function normalizeEquipmentRecord(input: {
       sourceNotes: ["Normalized from guarded public Skland endpoints with local mirrored assets."]
     },
     sourceRefs: buildSourceRefs(input.discovery, input.detail),
-    plannerCategory: inferPlannerCategory(subtype),
+    plannerCategory: inferPlannerCategoryFromInGameType(input.detail.inGameTypeLabel, subtype),
     sourceCategoryLabel: normalizeSourceLabel(input.discovery.categoryName),
     sourceSubCategoryLabel: normalizeSourceLabel(input.discovery.subCategoryName),
+    inGameTypeId: input.detail.inGameTypeId,
+    inGameTypeLabel: normalizeSourceLabel(input.detail.inGameTypeLabel),
+    inGameRarityLabel: normalizeSourceLabel(input.detail.inGameRarityLabel),
+    inGameQualityLabel: normalizeSourceLabel(input.detail.inGameQualityLabel),
+    usageHints: input.detail.usageHints,
     availabilityStatus: "reference-only",
     worldCategory: "placeable",
     placementKind: "area",

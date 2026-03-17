@@ -70,6 +70,11 @@ export type PlaceableItem = CatalogEntity & {
   plannerCategory: PlannerCategory;
   sourceCategoryLabel?: string;
   sourceSubCategoryLabel?: string;
+  inGameTypeId?: string;
+  inGameTypeLabel?: string;
+  inGameRarityLabel?: string;
+  inGameQualityLabel?: string;
+  usageHints?: string[];
   availabilityStatus: AvailabilityStatus;
   placementKind: PlacementKind;
   placeableClass?: PlacementKind;

@@ -5,13 +5,22 @@ import { selectSelectedNode } from "../../application/store/selectors";
 import type { PlaceableItem, PlannerCategory, PortDefinition } from "../../domain/types";
 import { getRotatedFootprintSize } from "../../domain/plan/geometry";
 import { connectPorts, moveNode, placeNode } from "../../domain/plan/operations";
+import {
+  getAvailabilityReason
+} from "../catalogPresentation";
 import { ConnectionLayer } from "./ConnectionLayer";
 import { cellKey, GridLayer } from "./GridLayer";
 import { NodeLayer } from "./NodeLayer";
 import { PlacementGhost } from "./PlacementGhost";
 import styles from "./PlannerWorkspace.module.css";
 import { usePlannerHotkeys } from "./usePlannerHotkeys";
-import { getCanvasPixelSize, resolveIconSource } from "./workspaceLayout";
+import {
+  getCanvasPixelSize,
+  getCellPixelPosition,
+  getFootprintPixelSize,
+  GRID_CELL_SIZE,
+  resolveIconSource
+} from "./workspaceLayout";
 
 type PlannerWorkspaceProps = {
   store: PlannerStore;
@@ -47,12 +56,8 @@ export function PlannerWorkspace({ store }: PlannerWorkspaceProps) {
   const plan = plannerState.plan;
   const dataset = plannerState.dataset;
   const [pendingCatalogId, setPendingCatalogId] = useState<string | null>(null);
-  const [expandedCategories, setExpandedCategories] = useState<Record<PlannerCategory, boolean>>({
-    machines: true,
-    logistics: true,
-    storage: true,
-    utilities: true
-  });
+  const [activeCategory, setActiveCategory] = useState<PlannerCategory>("machines");
+  const [activeMachineTypeFilter, setActiveMachineTypeFilter] = useState<string>("all");
   const [pendingConnection, setPendingConnection] = useState<{
     nodeId: string;
     portId: string;
@@ -102,6 +107,80 @@ export function PlannerWorkspace({ store }: PlannerWorkspaceProps) {
 
     return grouped;
   }, [dataset.placeableItems]);
+
+  const machineTypeFilters = useMemo(() => {
+    const seen = new Set<string>();
+    const filters = ["all"];
+
+    for (const item of catalogItemsByCategory.machines) {
+      const label = item.inGameTypeLabel?.trim();
+      if (!label || seen.has(label)) {
+        continue;
+      }
+
+      seen.add(label);
+      filters.push(label);
+    }
+
+    return filters;
+  }, [catalogItemsByCategory.machines]);
+
+  const visibleCatalogItems = useMemo(() => {
+    const items = catalogItemsByCategory[activeCategory];
+
+    if (activeCategory !== "machines" || activeMachineTypeFilter === "all") {
+      return items;
+    }
+
+    return items.filter((item) => item.inGameTypeLabel === activeMachineTypeFilter);
+  }, [activeCategory, activeMachineTypeFilter, catalogItemsByCategory]);
+
+  const siteOverlayEntries = useMemo(() => {
+    if (!sitePreset) {
+      return [];
+    }
+
+    return sitePreset.fixtures.flatMap((fixturePlacement) => {
+      const fixtureType = dataset.siteFixtures[fixturePlacement.fixtureTypeId];
+      if (!fixtureType) {
+        return [];
+      }
+
+      const blockedZone =
+        sitePreset.blockedZones.find(
+          (zone) =>
+            fixturePlacement.x >= zone.x &&
+            fixturePlacement.x < zone.x + zone.width &&
+            fixturePlacement.y >= zone.y &&
+            fixturePlacement.y < zone.y + zone.height
+        ) ?? null;
+
+      const position = getCellPixelPosition({
+        x: blockedZone?.x ?? fixturePlacement.x,
+        y: blockedZone?.y ?? fixturePlacement.y
+      });
+      const size = getFootprintPixelSize({
+        width: blockedZone?.width ?? 1,
+        height: blockedZone?.height ?? 1
+      });
+      const isReservedZone = fixtureType.tags?.includes("reserved") ?? false;
+
+      return [
+        {
+          id: fixturePlacement.id,
+          label: fixtureType.nameZhHans,
+          kind: isReservedZone ? "reserved-zone" : "fixture",
+          style: {
+            left: position.left,
+            top: position.top,
+            width: size.width,
+            height: size.height,
+            minHeight: Math.max(size.height, GRID_CELL_SIZE)
+          }
+        }
+      ];
+    });
+  }, [dataset.siteFixtures, sitePreset]);
 
   const portDefinitionsByNodeId = useMemo<Record<string, PortDefinition[]>>(
     () =>
@@ -188,79 +267,97 @@ export function PlannerWorkspace({ store }: PlannerWorkspaceProps) {
     <section className={styles.workspace} data-testid="planner-workspace">
       <div className={styles.controls}>
         <div className={styles.catalog}>
-          {PLANNER_CATEGORIES.map((category) => {
-            const isExpanded = expandedCategories[category];
-            const items = catalogItemsByCategory[category];
-
-            return (
-              <section
-                className={styles.catalogCategory}
-                data-testid={`catalog-category:${category}`}
+          <div className={styles.tabRow} role="tablist" aria-label="Catalog Categories">
+            {PLANNER_CATEGORIES.map((category) => (
+              <button
                 key={category}
-              >
-                <button
-                  aria-expanded={isExpanded}
-                  className={styles.categoryToggle}
-                  data-testid={`catalog-category-toggle:${category}`}
-                  onClick={() =>
-                    setExpandedCategories((current) => ({
-                      ...current,
-                      [category]: !current[category]
-                    }))
+                aria-selected={activeCategory === category}
+                className={styles.tabButton}
+                data-testid={`catalog-tab:${category}`}
+                onClick={() => {
+                  setActiveCategory(category);
+                  if (category !== "machines") {
+                    setActiveMachineTypeFilter("all");
                   }
+                }}
+                role="tab"
+                type="button"
+              >
+                {PLANNER_CATEGORY_LABELS[category]}
+              </button>
+            ))}
+          </div>
+          {activeCategory === "machines" ? (
+            <div className={styles.typeFilterRow}>
+              {machineTypeFilters.map((filter) => (
+                <button
+                  key={filter}
+                  aria-pressed={activeMachineTypeFilter === filter}
+                  className={styles.typeFilterButton}
+                  data-testid={`catalog-type-filter:${filter}`}
+                  onClick={() => setActiveMachineTypeFilter(filter)}
                   type="button"
                 >
-                  <span>{PLANNER_CATEGORY_LABELS[category]}</span>
+                  {filter === "all" ? "全部" : filter}
                 </button>
-                {isExpanded ? (
-                  <div className={styles.catalogRail} data-testid={`catalog-rail:${category}`}>
-                    {items.map((item) => {
-                      const disabled = item.availabilityStatus !== "validated";
-                      const iconSource = resolveIconSource(item.icon);
+              ))}
+            </div>
+          ) : null}
+          <div className={styles.catalogRail} data-testid={`catalog-rail:${activeCategory}`}>
+            {visibleCatalogItems.map((item) => {
+              const disabled = item.availabilityStatus !== "validated";
+              const iconSource = resolveIconSource(item.icon);
 
-                      return (
-                        <button
-                          key={item.id}
-                          className={styles.catalogButton}
-                          data-active={pendingCatalogId === item.id}
-                          data-disabled={disabled}
-                          data-testid={`catalog-item:${item.id}`}
-                          disabled={disabled}
-                          onClick={() => {
-                            if (disabled) {
-                              return;
-                            }
+              return (
+                <button
+                  key={item.id}
+                  className={styles.catalogButton}
+                  data-active={pendingCatalogId === item.id}
+                  data-disabled={disabled}
+                  data-testid={`catalog-item:${item.id}`}
+                  disabled={disabled}
+                  onClick={() => {
+                    if (disabled) {
+                      return;
+                    }
 
-                            setPendingCatalogId(item.id);
-                            setPendingConnection(null);
-                            plannerState.commands.selectNode(null);
-                          }}
-                          type="button"
-                        >
-                          <span className={styles.catalogIconWrap} data-testid={`catalog-icon:${item.id}`}>
-                            {iconSource ? (
-                              <img alt="" className={styles.catalogIcon} src={iconSource} />
-                            ) : (
-                              <span aria-hidden className={styles.catalogFallbackIcon}>
-                                {item.nameZhHans.slice(0, 1)}
-                              </span>
-                            )}
-                          </span>
-                          <span className={styles.catalogLabel}>{item.nameZhHans}</span>
-                          <span
-                            className={styles.catalogItemState}
-                            data-testid={`catalog-item-state:${item.id}`}
-                          >
-                            {disabled ? "仅参考" : "可放置"}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                ) : null}
-              </section>
-            );
-          })}
+                    setPendingCatalogId(item.id);
+                    setPendingConnection(null);
+                    plannerState.commands.selectNode(null);
+                  }}
+                  type="button"
+                >
+                  <span className={styles.catalogIconWrap} data-testid={`catalog-icon:${item.id}`}>
+                    {iconSource ? (
+                      <img alt="" className={styles.catalogIcon} src={iconSource} />
+                    ) : (
+                      <span aria-hidden className={styles.catalogFallbackIcon}>
+                        {item.nameZhHans.slice(0, 1)}
+                      </span>
+                    )}
+                  </span>
+                  <span className={styles.catalogLabel}>{item.nameZhHans}</span>
+                  {item.inGameTypeLabel ? (
+                    <span
+                      className={styles.catalogType}
+                      data-testid={`catalog-item-type:${item.id}`}
+                    >
+                      {item.inGameTypeLabel}
+                    </span>
+                  ) : null}
+                  <span className={styles.catalogItemState} data-testid={`catalog-item-state:${item.id}`}>
+                    {disabled ? "仅参考" : "可放置"}
+                  </span>
+                  <span
+                    className={styles.catalogItemStateReason}
+                    data-testid={`catalog-item-state-reason:${item.id}`}
+                  >
+                    {disabled ? getAvailabilityReason(item.availabilityStatus) : "已验证占地与端口"}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
         <div className={styles.selectionActions}>
           <button
@@ -364,6 +461,28 @@ export function PlannerWorkspace({ store }: PlannerWorkspaceProps) {
           onCellLeave={() => setHoverCell(null)}
           width={sitePreset.width}
         />
+        <div className={styles.siteOverlayLayer} data-testid="site-overlay-layer">
+          {siteOverlayEntries.map((entry) => (
+            <div
+              key={entry.id}
+              className={
+                entry.kind === "reserved-zone" ? styles.siteReservedZone : styles.siteFixture
+              }
+              data-testid={`site-overlay-${entry.kind}:${entry.id}`}
+              style={entry.style}
+            >
+              <span
+                className={
+                  entry.kind === "reserved-zone"
+                    ? styles.siteReservedLabel
+                    : styles.siteFixtureLabel
+                }
+              >
+                {entry.label}
+              </span>
+            </div>
+          ))}
+        </div>
         <ConnectionLayer
           edges={Object.values(plan.edges)}
           height={canvasSize.height}

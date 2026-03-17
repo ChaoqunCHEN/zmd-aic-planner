@@ -20,6 +20,7 @@ import {
   buildSearchText,
   getAvailabilityDescription,
   getAvailabilityLabel,
+  getAvailabilityReason,
   getFallbackIconLabel,
   getPlaceableReferenceFacts,
   getPrimaryName,
@@ -179,7 +180,8 @@ export function App() {
   const referenceEntries: ReferenceEntry[] = [
     ...Object.values(plannerState.dataset.placeableItems).map((item) => ({
       id: item.id,
-      kindLabel: item.sourceSubCategoryLabel ?? item.sourceCategoryLabel ?? "设备",
+      kindLabel:
+        item.inGameTypeLabel ?? item.sourceSubCategoryLabel ?? item.sourceCategoryLabel ?? "设备",
       name: getPrimaryName(item),
       secondaryName: getSecondaryName(item),
       iconUrl: resolveIconSource(item.icon),
@@ -188,6 +190,10 @@ export function App() {
         item.id,
         item.nameZhHans,
         item.name,
+        item.inGameTypeLabel,
+        item.inGameRarityLabel,
+        item.inGameQualityLabel,
+        ...(item.usageHints ?? []),
         item.sourceCategoryLabel,
         item.sourceSubCategoryLabel,
         item.plannerCategory
@@ -195,7 +201,9 @@ export function App() {
       statusLabel: getAvailabilityLabel(item.availabilityStatus),
       statusDetail:
         item.availabilityStatus === "reference-only"
-          ? getAvailabilityDescription(item.availabilityStatus)
+          ? `${getAvailabilityReason(item.availabilityStatus)} · ${getAvailabilityDescription(
+              item.availabilityStatus
+            )}`
           : null
     })),
     ...Object.values(plannerState.dataset.resources).map((item) => ({

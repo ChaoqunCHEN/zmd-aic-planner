@@ -54,6 +54,10 @@ export function getAvailabilityDescription(status: AvailabilityStatus) {
     : "缺少占地或端口校验数据，暂时仅供浏览参考。";
 }
 
+export function getAvailabilityReason(status: AvailabilityStatus) {
+  return status === "validated" ? "已具备放置条件" : "缺少占地/端口校验";
+}
+
 export function getPlannerCategoryLabel(category: PlannerCategory) {
   return PLANNER_CATEGORY_LABELS[category];
 }
@@ -88,6 +92,18 @@ export function getPlaceableReferenceFacts(
     `占地：${placeable.footprint.width} x ${placeable.footprint.height}`
   ];
 
+  if (placeable.inGameTypeLabel) {
+    facts.push(`设备类型：${placeable.inGameTypeLabel}`);
+  }
+
+  if (placeable.inGameRarityLabel) {
+    facts.push(`星级：${placeable.inGameRarityLabel}`);
+  }
+
+  if (placeable.inGameQualityLabel) {
+    facts.push(`品质：${placeable.inGameQualityLabel}`);
+  }
+
   if (placeable.sourceCategoryLabel || placeable.sourceSubCategoryLabel) {
     facts.push(
       `来源分类：${[placeable.sourceCategoryLabel, placeable.sourceSubCategoryLabel]
@@ -101,6 +117,10 @@ export function getPlaceableReferenceFacts(
       getPortSummary(node ?? { rotation: 0 }, port)
     );
     facts.push(`端口：${portSummaries.join("；")}`);
+  }
+
+  for (const hint of placeable.usageHints ?? []) {
+    facts.push(`使用提示：${hint}`);
   }
 
   return facts;

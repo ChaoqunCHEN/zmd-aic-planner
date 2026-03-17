@@ -21,14 +21,7 @@
         "height": 10
       }
     ],
-    "blockedZones": [
-      {
-        "x": 5,
-        "y": 0,
-        "width": 1,
-        "height": 3
-      }
-    ],
+    "blockedZones": [],
     "fixtures": [
       {
         "id": "fixture.training-yard.ore-deposit",
@@ -89,6 +82,12 @@
         "fixtureTypeId": "fixture.collapsed-walkway",
         "x": 6,
         "y": 2
+      },
+      {
+        "id": "fixture.survey-annex.sub-pac-pad",
+        "fixtureTypeId": "fixture.sub-pac-pad",
+        "x": 11,
+        "y": 0
       }
     ]
   }

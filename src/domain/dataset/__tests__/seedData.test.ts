@@ -86,6 +86,28 @@ describe("bundled seed data", () => {
     ).toEqual(expect.arrayContaining(["resource-deposit", "obstacle"]));
   });
 
+  it("keeps the starter site free of anonymous blocked strips", () => {
+    const trainingYard = dataset.sitePresets["site.training-yard"];
+
+    expect(trainingYard.blockedZones).toEqual([]);
+    expect(trainingYard.fixtures).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          fixtureTypeId: "fixture.iron-deposit"
+        })
+      ])
+    );
+  });
+
+  it("maps alternate-site blocked areas to named fixtures or reserved structures", () => {
+    const surveyAnnex = dataset.sitePresets["site.survey-annex"];
+    const fixtureTypeIds = surveyAnnex.fixtures.map((fixture) => fixture.fixtureTypeId);
+
+    expect(fixtureTypeIds).toEqual(
+      expect.arrayContaining(["fixture.collapsed-walkway", "fixture.sub-pac-pad"])
+    );
+  });
+
   it("contains a minimal validated interactive placeable set", () => {
     const validated = Object.values(dataset.placeableItems).filter(
       (item) => item.availabilityStatus === "validated"
@@ -110,7 +132,20 @@ describe("bundled seed data", () => {
 
   it("keeps crawled placeables visible as reference-only records", () => {
     expect(dataset.placeableItems["machine.skland-10"].availabilityStatus).toBe("reference-only");
-    expect(dataset.placeableItems["machine.skland-10"].plannerCategory).toBe("machines");
+    expect(dataset.placeableItems["machine.skland-10"].plannerCategory).toBe("logistics");
+  });
+
+  it("ships in-game type metadata and usage hints for crawled machine families", () => {
+    const miner = dataset.placeableItems["machine.skland-166"];
+    const logistics = dataset.placeableItems["machine.skland-164"];
+    const storage = dataset.placeableItems["machine.skland-168"];
+
+    expect(miner.inGameTypeLabel).toBe("资源开采");
+    expect(miner.usageHints?.length).toBeGreaterThan(0);
+    expect(logistics.inGameTypeLabel).toBe("物流设备");
+    expect(logistics.plannerCategory).toBe("logistics");
+    expect(storage.inGameTypeLabel).toBe("仓储存区");
+    expect(storage.plannerCategory).toBe("storage");
   });
 
   it("ships planner category and source-category metadata for curated logistics pieces", () => {

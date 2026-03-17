@@ -22,8 +22,76 @@ export const sampleDetailRecord: SklandDetailRecord = {
   illustrationUrl: "https://assets.skland.com/endfield/items/12345-card.webp",
   typeMainId: "1",
   typeSubId: "5",
+  inGameTypeId: "10247",
+  inGameTypeLabel: "资源开采",
+  inGameRarityLabel: "2星",
+  inGameQualityLabel: "绿色品质",
+  usageHints: [
+    "抽水机需要放置在资源点上。",
+    "资源开采类设备可用于采集原料。"
+  ],
   raw: {
-    id: "12345"
+    item: {
+      id: "12345",
+      subType: {
+        filterTagTree: [
+          {
+            id: "10000",
+            name: "星级",
+            children: [{ id: "10002", name: "2星", type: 2, value: "rarity_2" }]
+          },
+          {
+            id: "10307",
+            name: "品质",
+            children: [{ id: "10311", name: "绿色品质", type: 1, value: "" }]
+          },
+          {
+            id: "10244",
+            name: "设备类型",
+            children: [{ id: "10247", name: "资源开采", type: 1, value: "" }]
+          }
+        ]
+      },
+      brief: {
+        subTypeList: [
+          { subTypeId: "10000", value: "10002" },
+          { subTypeId: "10307", value: "10311" },
+          { subTypeId: "10244", value: "10247" }
+        ]
+      },
+      document: {
+        widgetCommonMap: {
+          usage: {
+            tabDataMap: {
+              default: {
+                content: "doc-usage"
+              }
+            }
+          }
+        },
+        documentMap: {
+          "doc-usage": {
+            blockIds: ["usage-a", "usage-b"],
+            blockMap: {
+              "usage-a": {
+                id: "usage-a",
+                kind: "text",
+                text: {
+                  inlineElements: [{ kind: "text", text: { text: "抽水机需要放置在资源点上。" } }]
+                }
+              },
+              "usage-b": {
+                id: "usage-b",
+                kind: "text",
+                text: {
+                  inlineElements: [{ kind: "text", text: { text: "资源开采类设备可用于采集原料。" } }]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }
 };
 

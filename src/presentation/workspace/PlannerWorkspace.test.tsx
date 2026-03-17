@@ -50,28 +50,66 @@ function setupWorkspace() {
   return store;
 }
 
+function setupWorkspaceFor(sitePresetId: string) {
+  const storage = {
+    getItem() {
+      return null;
+    },
+    setItem() {}
+  };
+  const store = createPlannerStore({ dataset, storage });
+  store.getState().commands.createProject({ sitePresetId });
+
+  return store;
+}
+
 describe("PlannerWorkspace", () => {
-  it("shows planner-category accordion browsing with Chinese-first labels and icons", async () => {
+  it("shows top-tabs catalog browsing with Chinese-first labels and icons", async () => {
     const user = userEvent.setup();
     const store = setupWorkspace();
 
     render(<PlannerWorkspace store={store} />);
 
-    const machinesToggle = screen.getByTestId("catalog-category-toggle:machines");
-    expect(machinesToggle).toHaveAttribute("aria-expanded", "true");
+    const machinesTab = screen.getByTestId("catalog-tab:machines");
+    const logisticsTab = screen.getByTestId("catalog-tab:logistics");
+    expect(machinesTab).toHaveAttribute("aria-selected", "true");
+    expect(logisticsTab).toHaveAttribute("aria-selected", "false");
 
-    const machinesRail = screen.getByTestId("catalog-rail:machines");
+    const catalogRail = screen.getByTestId("catalog-rail:machines");
     expect(
-      within(machinesRail).getByTestId("catalog-item:machine.basic-smelter")
+      within(catalogRail).getByTestId("catalog-item:machine.basic-smelter")
     ).toHaveTextContent("基础冶炼炉");
     expect(
-      within(machinesRail).getByTestId("catalog-icon:machine.basic-smelter")
+      within(catalogRail).getByTestId("catalog-icon:machine.basic-smelter")
     ).toBeVisible();
     expect(screen.queryByText("Basic Smelter")).not.toBeInTheDocument();
 
-    await user.click(machinesToggle);
-    expect(machinesToggle).toHaveAttribute("aria-expanded", "false");
-    expect(screen.queryByTestId("catalog-rail:machines")).not.toBeInTheDocument();
+    await user.click(logisticsTab);
+    expect(logisticsTab).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByTestId("catalog-rail:logistics")).toBeVisible();
+    expect(screen.getByTestId("catalog-item:belt.basic-conveyor")).toBeVisible();
+    expect(screen.queryByTestId("catalog-item:machine.basic-smelter")).not.toBeInTheDocument();
+  });
+
+  it("shows machine in-game-type filter options and filters machine cards", async () => {
+    const user = userEvent.setup();
+    const store = setupWorkspace();
+
+    render(<PlannerWorkspace store={store} />);
+
+    const allFilter = screen.getByTestId("catalog-type-filter:all");
+    const miningFilter = screen.getByTestId("catalog-type-filter:资源开采");
+    expect(allFilter).toHaveAttribute("aria-pressed", "true");
+    expect(miningFilter).toHaveAttribute("aria-pressed", "false");
+
+    expect(screen.getByTestId("catalog-item:machine.basic-smelter")).toBeVisible();
+    expect(screen.getByTestId("catalog-item:machine.skland-166")).toBeVisible();
+
+    await user.click(miningFilter);
+    expect(miningFilter).toHaveAttribute("aria-pressed", "true");
+    expect(allFilter).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByTestId("catalog-item:machine.skland-166")).toBeVisible();
+    expect(screen.queryByTestId("catalog-item:machine.basic-smelter")).not.toBeInTheDocument();
   });
 
   it("keeps reference-only catalog items visible but disabled and non-placeable", async () => {
@@ -80,11 +118,18 @@ describe("PlannerWorkspace", () => {
 
     render(<PlannerWorkspace store={store} />);
 
+    await user.click(
+      screen.getByTestId(`catalog-tab:${referenceOnlyCatalogItem.plannerCategory}`)
+    );
+
     const referenceButton = screen.getByTestId(`catalog-item:${referenceOnlyCatalogItem.id}`);
     expect(referenceButton).toBeDisabled();
     expect(
       screen.getByTestId(`catalog-item-state:${referenceOnlyCatalogItem.id}`)
     ).toHaveTextContent("仅参考");
+    expect(
+      screen.getByTestId(`catalog-item-state-reason:${referenceOnlyCatalogItem.id}`)
+    ).toHaveTextContent("缺少占地/端口校验");
 
     await user.click(referenceButton);
     await user.hover(screen.getByTestId("grid-cell:2:4"));
@@ -95,6 +140,19 @@ describe("PlannerWorkspace", () => {
       (node) => node.catalogId === referenceOnlyCatalogItem.id
     );
     expect(hasReferenceNode).toBe(false);
+  });
+
+  it("renders fixture and reserved-zone overlays from site preset data", () => {
+    const store = setupWorkspaceFor("site.survey-annex");
+
+    render(<PlannerWorkspace store={store} />);
+
+    expect(screen.getByTestId("site-overlay-layer")).toBeVisible();
+    expect(screen.getByTestId("site-overlay-fixture:fixture.survey-annex.ore-deposit")).toBeVisible();
+    expect(screen.getByTestId("site-overlay-fixture:fixture.survey-annex.collapse")).toBeVisible();
+    expect(
+      screen.getByTestId("site-overlay-reserved-zone:fixture.survey-annex.sub-pac-pad")
+    ).toHaveTextContent("副PAC预留位");
   });
 
   it("places from the catalog, renders icon-first nodes, then selects, moves, rotates, and deletes", async () => {

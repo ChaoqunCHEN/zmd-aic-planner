@@ -91,9 +91,11 @@ describe("loadDataset", () => {
 
     const referenceOnly = result.data.placeableItems["machine.skland-10"];
     expect(referenceOnly.availabilityStatus).toBe("reference-only");
-    expect(referenceOnly.plannerCategory).toBe("machines");
+    expect(referenceOnly.plannerCategory).toBe("logistics");
     expect(referenceOnly.placementKind).toBe("area");
     expect(referenceOnly.nameZhHans).toBe("物品准入口");
+    expect(referenceOnly.inGameTypeLabel).toBeTruthy();
+    expect(Array.isArray(referenceOnly.usageHints)).toBe(true);
   });
 
   it("supports sided ports with medium metadata on placeables", () => {
@@ -128,7 +130,11 @@ describe("loadDataset", () => {
 
   it("accepts mirrored asset refs and source refs on catalog entities", () => {
     const enrichedDataset = structuredClone(bundledDataset);
-    const target = enrichedDataset.placeableItems[0];
+    const target = enrichedDataset.placeableItems.find((item) => item.id === "machine.basic-smelter");
+
+    if (!target) {
+      throw new Error("Expected machine.basic-smelter in bundled dataset");
+    }
 
     Object.assign(target, {
       icon: {
@@ -169,5 +175,17 @@ describe("loadDataset", () => {
     );
     expect(enriched.icon?.sourceUrl).toBe("https://assets.skland.com/example/icon.png");
     expect(enriched.sourceRefs?.[0]?.endpoint).toBe("/web/v1/wiki/item/info");
+  });
+
+  it("rejects malformed in-game metadata when provided on placeables", () => {
+    const invalidDataset = structuredClone(bundledDataset);
+    invalidDataset.placeableItems[0] = {
+      ...invalidDataset.placeableItems[0],
+      inGameTypeId: "",
+      usageHints: ["有效提示", 42]
+    } as unknown as (typeof invalidDataset.placeableItems)[number];
+
+    const parsed = rawDatasetFilesSchema.safeParse(invalidDataset);
+    expect(parsed.success).toBe(false);
   });
 });

@@ -71,11 +71,11 @@ describe("placeNode", () => {
   });
 
   it("rejects placements that overlap blocked zones", () => {
-    const plan = createPlan(dataset, { sitePresetId: "site.training-yard" });
+    const plan = createPlan(dataset, { sitePresetId: "site.survey-annex" });
     const result = placeNode(plan, dataset, {
       nodeId: "node-blocked",
       catalogId: "machine.basic-smelter",
-      position: { x: 4, y: 1 }
+      position: { x: 6, y: 2 }
     });
 
     expect(result.ok).toBe(false);

@@ -30,5 +30,25 @@
     },
     "referenceKind": "site-fixture-type",
     "fixtureCategory": "obstacle"
+  },
+  {
+    "id": "fixture.sub-pac-pad",
+    "kind": "site-fixture-type",
+    "name": "Sub-PAC Pad",
+    "nameZhHans": "副PAC预留位",
+    "description": "Reserved service structure footprint used to explain non-buildable edge tiles in the annex layout.",
+    "tags": [
+      "reserved",
+      "service-structure"
+    ],
+    "source": {
+      "sourceSystem": "curated",
+      "sourceConfidence": "probable",
+      "sourceNotes": [
+        "Reserved pad metadata added for v1.2 top-view site readability."
+      ]
+    },
+    "referenceKind": "site-fixture-type",
+    "fixtureCategory": "obstacle"
   }
 ]

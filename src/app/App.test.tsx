@@ -12,6 +12,9 @@ describe("App task 8 flows", () => {
     await screen.findByTestId("planner-workspace");
     expect(screen.getByTestId("recent-projects-list")).toBeVisible();
     expect(screen.getByTestId("import-project-input")).toBeInTheDocument();
+    expect(screen.getByTestId("catalog-tab:machines")).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByTestId("catalog-type-filter:all")).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByTestId("site-overlay-layer")).toBeVisible();
 
     await user.click(screen.getByTestId("new-project-button"));
     expect(screen.getByTestId("site-preset-select")).toBeVisible();
@@ -33,6 +36,19 @@ describe("App task 8 flows", () => {
       expect(screen.getByTestId("node-mode-select")).toBeVisible();
       expect(screen.getByTestId("input-cap-editor")).toBeVisible();
     });
+  });
+
+  it("keeps reference-only catalog entries visible with in-game type and disabled rationale", async () => {
+    render(<App />);
+
+    await screen.findByTestId("planner-workspace");
+    expect(screen.getByTestId("catalog-item:machine.skland-166")).toBeDisabled();
+    expect(screen.getByTestId("catalog-item-type:machine.skland-166")).toHaveTextContent(
+      "资源开采"
+    );
+    expect(
+      screen.getByTestId("catalog-item-state-reason:machine.skland-166")
+    ).toHaveTextContent("缺少占地/端口校验");
   });
 
   it("surfaces canonical site, rule, mode, recipe, and provenance details in the reference pane", async () => {

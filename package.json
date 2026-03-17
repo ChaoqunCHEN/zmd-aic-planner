@@ -5,8 +5,10 @@
   "type": "module",
   "packageManager": "pnpm@10.32.1",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "prepare:planner-assets": "tsx scripts/publishPlannerAssetsCli.ts",
+    "dev": "pnpm prepare:planner-assets && vite",
+    "build": "pnpm prepare:planner-assets && tsc --noEmit && vite build",
+    "preview": "pnpm prepare:planner-assets && vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
@@ -14,8 +16,8 @@
     "test:e2e:headed": "playwright test --headed",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "crawl:skland:equipment": "tsx scripts/skland/index.ts",
-    "crawl:skland:equipment:resume": "tsx scripts/skland/index.ts --resume",
+    "crawl:skland:equipment": "tsx scripts/skland/index.ts && pnpm prepare:planner-assets",
+    "crawl:skland:equipment:resume": "tsx scripts/skland/index.ts --resume && pnpm prepare:planner-assets",
     "crawl:skland:equipment:smoke": "tsx scripts/skland/index.ts --smoke --rootDir .tmp/skland-smoke"
   },
   "dependencies": {
