@@ -9,13 +9,12 @@ Browser-first planning workspace for the Arknights: Endfield AIC planner MVP.
 - `pnpm build` creates the production bundle in `dist/`.
 - `pnpm typecheck` runs the TypeScript compiler in no-emit mode.
 
-## Run the app locally
+## Run the production build locally
 
 1. Install dependencies with `pnpm install`.
-2. Start the development server with `pnpm dev`.
-3. Open `http://127.0.0.1:4173` in your browser.
-
-If you want a production-style sanity check locally, run `pnpm build` and then `pnpm preview`.
+2. Create the production bundle with `pnpm build`.
+3. Start the local preview server with `pnpm run preview`.
+4. Open the preview URL printed by Vite in your browser.
 
 ## Skland crawler
 
